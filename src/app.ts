@@ -18,7 +18,25 @@ app.use(express.urlencoded({
 }));
 app.use(cookieParser());
 // Static Files Setup
+
+const helmet = require('helmet')
+
+app.use(helmet());
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      "default-src": ["'self'"],
+      "connect-src": ["'self'", "'unsafe-inline'"],
+      "img-src": ["'self'", "data:"],
+      "style-src-elem": ["'self'", "data:"],
+      "script-src": ["'unsafe-inline'", "'self'"],
+      "object-src": ["'none'"],
+    },
+  })
+);
 app.use(express.static(path.join(__dirname, '/public')));
+
 // Logging Setup
 const log = {
     info: (message: string) => console.log(`\x1b[32m${message}\x1b[0m`),
@@ -30,67 +48,41 @@ const log = {
 const port = process.env.PORT || '80';
 app.set('port', port);
 const server = http.createServer(app);
-server.on('error', onError);
-server.on('listening', onListening);
-
-// Development Mode Setup
-const development = process.env.NODE_ENV?.toLowerCase() === 'development' ? true : process.env.NODE_ENV?.toLowerCase() === 'production' ? false : undefined;
 
 // Cluster Setup
 if (cluster.isPrimary) {
-  if (development) {
-    log.warn(`You are running in development mode`);
-  } else if (development === false) {
-    log.info(`You are running in production mode`);
-  } else if (development === undefined) {
-    throw new Error('NODE_ENV is not set to "development" or "production"');
-  }
   // Fork workers
   log.info(`Primary ${process.pid} is running on port ${port}`);
   for (let i = 0; i < numCPUs; i++) {
       cluster.fork();
   }
+  // If a worker dies, create a new one to replace it (for load balancing)
   cluster.on('exit', (worker: any, code: any, signal: any) => {
       log.error(`worker ${worker.process.pid} died`);
+      cluster.fork();
   });
 } else {
-  if (development) {
-      const reload = require('reload');
-      reload(app).then(function(reloadReturned: any) {
-          server.listen(port);
-      }).catch(function(err: any) {
-          log.error(`Reload didn\'t work, ${err}`);
-      });
-    } else if (development === false) {
-      // Production Mode
-      server.listen(port);
-    }
-}
-
-// Error Handling
-function onError(error: any) {
-    if (error.syscall !== 'listen') {
-        throw error;
-    }
-    var bind = typeof port === 'string' ?
-        'Pipe ' + port :
-        'Port ' + port;
-
-    switch (error.code) {
-        case 'EACCES':
-            log.error(`${bind} requires elevated privileges`);
-            process.exit(1);
-        case 'EADDRINUSE':
-            log.error(`${bind} is already in use`);
-            process.exit(1);
-        default:
+    server.listen(port, () => {
+        log.info(`Worker ${process.pid} started`);
+    }).on('error', (error: any) => {
+        if (error.syscall !== 'listen') {
             throw error;
-    }
-}
-
-// Server Listening
-function onListening() {
-    log.info(`Worker ${process.pid} started`);
+        }
+        var bind = typeof port === 'string' ?
+            'Pipe ' + port :
+            'Port ' + port;
+    
+        switch (error.code) {
+            case 'EACCES':
+                log.error(`${bind} requires elevated privileges`);
+                process.exit(1);
+            case 'EADDRINUSE':
+                log.error(`${bind} is already in use`);
+                process.exit(1);
+            default:
+                throw error;
+        }
+    });
 }
 
 // 404 Error Handling
