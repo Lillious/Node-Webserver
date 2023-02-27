@@ -9,6 +9,7 @@ const http = require('node:http');
 const cluster = require('node:cluster');
 const numCPUs = require('node:os').availableParallelism();
 const rateLimit = require('express-rate-limit');
+const vhost = require('vhost');
 require('dotenv').config();
 
 // View Engine Setup
@@ -18,7 +19,6 @@ app.use(express.urlencoded({
     extended: false
 }));
 app.use(cookieParser());
-// Static Files Setup
 
 const helmet = require('helmet')
 
@@ -36,7 +36,14 @@ app.use(
     },
   })
 );
-app.use(express.static(path.join(__dirname, '/public')));
+
+// Sub Domain Setup and Static Files Setup
+app.set('subdomain offset', 1);
+app.use(vhost('subdomain-1.*.*', express.static(path.join(__dirname, '/subdomain 1'))));
+app.use(vhost('subdomain-2.*.*', express.static(path.join(__dirname, '/subdomain 2'))));
+
+// Root Domain Setup and Static Files Setup
+app.use(vhost('*.*', express.static(path.join(__dirname, '/root'))));
 
 // Rate Limiting Setup
 const limiter = rateLimit({
@@ -99,9 +106,4 @@ if (cluster.isPrimary) {
 // API Path
 app.get('/api', (req: any, res: any) => {
     res.status(200).send('OK');
-});
-
-// Catch 429 and forward to error handler
-app.use((req: any, res: any, next: any) => {
-    res.status(429).send('Too Many Requests');
 });
