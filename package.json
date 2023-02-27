@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run build && node dist/src/app.js",
     "clean": "rimraf dist/",
-    "copy-files": "copyfiles -u 1 ./src/**/*.html ./src/**/*.css ./src/**/*.png ./src/**/*.jpg ./src/**/*.jpeg ./src/**/*.gif ./src/**/*.mp3 ./src/**/*.mp4 ./dist/src/",
+    "copy-files": "copyfiles -u 1 ./src/**/*.html ./src/**/*.css ./src/**/*.saas ./src/**/*.png ./src/**/*.jpg ./src/**/*.jpeg ./src/**/*.gif ./src/**/*.mp3 ./src/**/*.mp4 ./dist/src/",
     "build": "npm run clean && tsc && npm run copy-files"
   },
   "keywords": [],
@@ -16,13 +16,12 @@
   "dependencies": {
     "cluster": "^0.7.7",
     "cookie-parser": "^1.4.6",
-    "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-asyncify": "^1.1.0",
     "express-rate-limit": "^6.7.0",
-    "helmet": "^6.0.1",
     "morgan": "^1.10.0",
     "path": "^0.12.7",
+    "react": "^18.2.0",
     "typescript": "^4.9.5",
     "vhost": "^3.0.2"
   },

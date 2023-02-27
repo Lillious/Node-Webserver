@@ -10,7 +10,6 @@ const cluster = require('node:cluster');
 const numCPUs = require('node:os').availableParallelism();
 const rateLimit = require('express-rate-limit');
 const vhost = require('vhost');
-require('dotenv').config();
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -19,23 +18,6 @@ app.use(express.urlencoded({
     extended: false
 }));
 app.use(cookieParser());
-
-const helmet = require('helmet')
-
-app.use(helmet());
-
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      "default-src": ["'self'"],
-      "connect-src": ["'self'", "'unsafe-inline'"],
-      "img-src": ["'self'", "data:"],
-      "style-src-elem": ["'self'", "data:"],
-      "script-src": ["'unsafe-inline'", "'self'"],
-      "object-src": ["'none'"],
-    },
-  })
-);
 
 // Sub Domain Setup and Static Files Setup
 app.set('subdomain offset', 1);
@@ -63,7 +45,7 @@ const log = {
 }
 
 // Server Setup
-const port = process.env.PORT || '80';
+const port = '80';
 app.set('port', port);
 const server = http.createServer(app);
 
