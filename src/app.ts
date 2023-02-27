@@ -21,8 +21,7 @@ app.use(cookieParser());
 
 // Sub Domain Setup and Static Files Setup
 app.set('subdomain offset', 1);
-app.use(vhost('subdomain-1.*.*', express.static(path.join(__dirname, '/subdomain 1'))));
-app.use(vhost('subdomain-2.*.*', express.static(path.join(__dirname, '/subdomain 2'))));
+// app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'))));
 
 // Root Domain Setup and Static Files Setup
 app.use(vhost('*.*', express.static(path.join(__dirname, '/root'))));
