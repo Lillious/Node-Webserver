@@ -1,4 +1,5 @@
 const express = require('express');
+const compression = require('compression');
 const app = express();
 const path = require('node:path');
 const logger = require('morgan');
@@ -14,16 +15,17 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
+app.use(compression());
 
 // Sub Domain Setup and Static Files Setup
 app.set('subdomain offset', 1);
-// app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'))));
+// app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'), { maxAge: 31557600 })));
 
 // Root Domain Setup and Static Files Setup
-app.use(vhost('*.*', express.static(path.join(__dirname, '/root'))));
+app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), { maxAge: 31557600 })));
 
 // Localhost Setup and Static Files Setup
-app.use(vhost('localhost', express.static(path.join(__dirname, '/root'))));
+app.use(vhost('localhost', express.static(path.join(__dirname, '/root'), { maxAge: 31557600 })));
 
 // Rate Limiting Setup
 const limiter = rateLimit({
@@ -85,5 +87,6 @@ if (cluster.isPrimary) {
 
 // API Path
 app.get('/api', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
     res.status(200).send('OK');
 });
