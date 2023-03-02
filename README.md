@@ -7,6 +7,9 @@ An easy-to-use webserver powered by Node and ExpressJS
 - Cluster based multi threading
 - Support for multiple file types (adjustable in package.json)
 - Api path at /api
+- Code minifier
+- Request/File Caching
+- Express file compression
 
 # Steps to install, build and run
 - Install
