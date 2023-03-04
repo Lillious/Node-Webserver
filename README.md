@@ -4,12 +4,14 @@ An easy-to-use webserver powered by Node and ExpressJS
 # Features
 - Adjustable Rate limiting
 - Support for subdomains
-- Cluster based multi threading
+- Cluster module
 - Support for multiple file types (adjustable in package.json)
 - Api path at /api
 - Code minifier
 - Request/File Caching
 - Express file compression
+- HTTP Parameter Pollution protection
+- Blazingly fast and light weight
 
 # Steps to install, build and run
 - Install
