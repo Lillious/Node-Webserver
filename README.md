@@ -12,6 +12,7 @@ An easy-to-use webserver powered by Node and ExpressJS
 - Express file compression
 - HTTP Parameter Pollution protection
 - Blazingly fast and light weight
+- Works with the Bun runtime!
 
 # Steps to install, build and run
 - Install
