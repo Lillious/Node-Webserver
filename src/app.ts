@@ -9,7 +9,6 @@ const cluster = require('node:cluster');
 const numCPUs = require('node:os').availableParallelism();
 const rateLimit = require('express-rate-limit');
 const vhost = require('vhost');
-const helmet = require('helmet');
 const hpp = require('hpp');
 
 // View Engine Setup
@@ -88,7 +87,7 @@ if (cluster.isPrimary) {
         if (error.syscall !== 'listen') {
             throw error;
         }
-        var bind = typeof port === 'string' ?
+        const bind = typeof port === 'string' ?
             'Pipe ' + port :
             'Port ' + port;
 
@@ -96,9 +95,11 @@ if (cluster.isPrimary) {
             case 'EACCES':
                 log.error(`${bind} requires elevated privileges`);
                 process.exit(1);
+                break;
             case 'EADDRINUSE':
                 log.error(`${bind} is already in use`);
                 process.exit(1);
+                break;
             default:
                 throw error;
         }
