@@ -85,8 +85,17 @@ if (cluster.isPrimary) {
     });
 }
 
+/* Start Routing */
+
 // API Path
 app.get('/api', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=86400');
     res.status(200).send('OK');
+});
+
+/* End Routing */
+
+// Redirect to root domain if route is not found
+app.use(function(req: any, res: any, next: any) {
+    res.redirect(`http://${req.headers.host}`);
 });
