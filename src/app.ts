@@ -21,6 +21,19 @@ app.use(compression());
 app.set('subdomain offset', 1);
 // app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'), { maxAge: 31557600 })));
 
+// Check if the url has repeating slashes at the end of the domain
+app.use(function(req: any, res: any, next: any) {
+    let url = req.url;
+    if (url.match(/\/{2,}$/)) {
+        // Remove repeating slashes at the end of the domain
+        url = url.replace(/\/{2,}$/g, '/');
+        // Redirect to the new url
+        res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}${url}`);
+    } else {
+        next();
+    }
+});
+
 // Root Domain Setup and Static Files Setup
 app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), { maxAge: 31557600 })));
 
@@ -37,11 +50,14 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
+// Timestamps for Logging
+const timestamp = () => { return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''); }
+
 // Logging Setup
 const log = {
-    info: (message: string) => console.log(`\x1b[32m${message}\x1b[0m`),
-    error: (message: string) => console.error(`\x1b[31m${message}\x1b[0m`),
-    warn: (message: string) => console.warn(`\x1b[33m${message}\x1b[0m`)
+    info: (message: string) => console.log(`${timestamp()} \x1b[32m${message}\x1b[0m`),
+    error: (message: string) => console.error(`${timestamp()} \x1b[31m${message}\x1b[0m`),
+    warn: (message: string) => console.warn(`${timestamp()} \x1b[33m${message}\x1b[0m`)
 };
 
 // Server Setup
@@ -95,7 +111,8 @@ app.get('/api', (req: any, res: any) => {
 
 /* End Routing */
 
+
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any, next: any) {
-    res.redirect(`http://${req.headers.host}`);
+    res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);
 });
