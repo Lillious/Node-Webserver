@@ -13,6 +13,8 @@ An easy-to-use webserver powered by ExpressJS
 - HTTP Parameter Pollution protection
 - Blazingly fast and light weight
 - Works with the Bun runtime!
+- ESLINT
+- Typescript
 
 # Steps to install, build and run
 - Install
