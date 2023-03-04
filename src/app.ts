@@ -9,6 +9,7 @@ const cluster = require('node:cluster');
 const numCPUs = require('node:os').availableParallelism();
 const rateLimit = require('express-rate-limit');
 const vhost = require('vhost');
+const helmet = require('helmet');
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(compression());
+// app.disable('x-powered-by');
 
 // Sub Domain Setup and Static Files Setup
 app.set('subdomain offset', 1);
