@@ -8,21 +8,29 @@
     "start": "npm run build && node dist/src/app.js",
     "clean": "rimraf dist/",
     "copy-files": "copyfiles -u 1 ./src/**/*.html ./src/**/*.css ./src/**/*.png ./src/**/*.ico ./src/**/*.jpg ./src/**/*.jpeg ./src/**/*.gif ./src/**/*.mp3 ./src/**/*.mp4 ./dist/src/",
-    "build": "npm run clean && tsc && npm run copy-files"
+    "build": "npm run clean && tsc && npm run copy-files && npm run minify",
+    "minify": "npm run uglify && npm run html-minify",
+    "uglify": "uglifyjs ./dist/src/app.js -o ./dist/src/app.js",
+    "html-minify": "html-minifier --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype --minify-css true --minify-js true --minify-urls true --input-dir ./dist/src/root/ --output-dir ./dist/src/root/"
   },
   "keywords": [],
   "author": "Logan Brown",
   "license": "ISC",
   "dependencies": {
     "cluster": "^0.7.7",
+    "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-asyncify": "^1.1.0",
     "express-rate-limit": "^6.7.0",
+    "helmet": "^6.0.1",
+    "hpp": "^0.2.3",
+    "html-minifier": "^4.0.0",
     "morgan": "^1.10.0",
     "path": "^0.12.7",
     "typescript": "^4.9.5",
+    "uglify-js": "^3.17.4",
     "vhost": "^3.0.2"
   },
   "devDependencies": {
