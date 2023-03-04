@@ -9,9 +9,8 @@
     "clean": "rimraf dist/",
     "copy-files": "copyfiles -u 1 ./src/**/*.html ./src/**/*.css ./src/**/*.png ./src/**/*.ico ./src/**/*.jpg ./src/**/*.jpeg ./src/**/*.gif ./src/**/*.mp3 ./src/**/*.mp4 ./dist/src/",
     "build": "npm run clean && tsc && npm run copy-files && npm run minify",
-    "minify": "npm run uglify && npm run html-minify",
-    "uglify": "uglifyjs ./dist/src/app.js -o ./dist/src/app.js",
-    "html-minify": "html-minifier --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype --minify-css true --minify-js true --minify-urls true --input-dir ./dist/src/root/ --output-dir ./dist/src/root/"
+    "minify": "npm run uglify",
+    "uglify": "uglifyjs ./dist/src/app.js -o ./dist/src/app.js"
   },
   "keywords": [],
   "author": "Logan Brown",
