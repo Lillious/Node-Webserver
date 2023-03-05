@@ -22,6 +22,7 @@ app.use(hpp());
 
 // Sub Domain Setup and Static Files Setup
 app.set('subdomain offset', 1);
+app.use(vhost('cpanel.*.*', express.static(path.join(__dirname, '/cpanel'), { maxAge: 31557600 })));
 // app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'), { maxAge: 31557600 })));
 
 // Check if the url has repeating slashes at the end of the domain
@@ -119,5 +120,7 @@ app.get('/api', (req: any, res: any) => {
 
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any, next: any) {
+    // Check if it is a subdomain
+    if (req.subdomains.length > 0) return next();
     res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);
 });
