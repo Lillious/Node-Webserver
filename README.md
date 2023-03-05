@@ -15,6 +15,7 @@ An easy-to-use webserver powered by ExpressJS
 - Works with the Bun runtime!
 - ESLINT
 - Typescript
+- Database Connection Utility
 
 # Steps to install, build and run
 - Install
