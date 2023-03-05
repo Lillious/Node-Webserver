@@ -71,6 +71,17 @@ const server = http.createServer(app);
 
 // Cluster Setup
 if (cluster.isPrimary) {
+    // Test Database Connection
+    const db = require('./utils/database');
+    db.query('SELECT 1 + 1 AS solution', (err: any, rows: any) => {
+        if (err) {
+            log.error(err);
+        }
+    }).then(() => {
+        log.info(`Database Connection Successful`);
+    }).catch((err: any) => {
+        log.error(`Database Connection Failed\n${err}`);
+    });
     // Fork workers
     log.info(`Primary ${process.pid} is running on port ${port}`);
     for (let i = 0; i < numCPUs; i++) {
@@ -116,7 +127,6 @@ app.get('/api', (req: any, res: any) => {
 });
 
 /* End Routing */
-
 
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any, next: any) {
