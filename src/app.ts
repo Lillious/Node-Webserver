@@ -4,6 +4,7 @@ const app = express();
 const path = require('node:path');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
+const session = require("cookie-session")
 const http = require('node:http');
 const cluster = require('node:cluster');
 const numCPUs = require('node:os').availableParallelism();
@@ -20,10 +21,48 @@ app.use(compression());
 app.disable('x-powered-by');
 app.use(hpp());
 
+// Timestamps for Logging
+const timestamp = () => { return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''); }
+
+// Logging Setup
+const log = {
+    info: (message: string) => console.log(`${timestamp()} \x1b[32m${message}\x1b[0m`),
+    error: (message: string) => console.error(`${timestamp()} \x1b[31m${message}\x1b[0m`),
+    warn: (message: string) => console.warn(`${timestamp()} \x1b[33m${message}\x1b[0m`)
+};
+
+// Authentication Setup
+const authentication = require('./utils/authentication');
+
+// Session Setup
+app.use(session({
+    name: 'session',
+    keys: ['key1', 'key2'], // !! Change this !!
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
+
+app.set('trust proxy', 1);
+
 // Sub Domain Setup and Static Files Setup
 app.set('subdomain offset', 1);
-app.use(vhost('cpanel.*.*', express.static(path.join(__dirname, '/cpanel'), { maxAge: 31557600 })));
-// app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'), { maxAge: 31557600 })));
+
+app.use(vhost('cpanel.*.*', function(req: any, res: any, next: any) {
+        if (req.cookies.session) {
+        authentication.checkSession(req.cookies.session).then((email: string) => {
+            express.static(path.join(__dirname, '/cpanel'), { maxAge: 31557600 })(req, res, next);
+            next();
+        }).catch((err: any) => {
+            log.error(err);
+            const domain = req.headers.host.split('.').slice(-2).join('.');
+            res.redirect(`${res.protocol}://login.${domain}`);
+        });
+    } else {
+        log.info(`User ${req.cookies.session} is not logged in`);
+        const domain = req.headers.host.split('.').slice(-2).join('.');
+        res.redirect(`${res.protocol}://login.${domain}`);
+    }
+}));
+app.use(vhost('login.*.*', express.static(path.join(__dirname, '/login'), { maxAge: 31557600 })));
 
 // Check if the url has repeating slashes at the end of the domain
 app.use(function(req: any, res: any, next: any) {
@@ -53,16 +92,6 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
-
-// Timestamps for Logging
-const timestamp = () => { return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''); }
-
-// Logging Setup
-const log = {
-    info: (message: string) => console.log(`${timestamp()} \x1b[32m${message}\x1b[0m`),
-    error: (message: string) => console.error(`${timestamp()} \x1b[31m${message}\x1b[0m`),
-    warn: (message: string) => console.warn(`${timestamp()} \x1b[33m${message}\x1b[0m`)
-};
 
 // Server Setup
 const port = '80';
@@ -123,7 +152,49 @@ if (cluster.isPrimary) {
 // API Path
 app.get('/api', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=86400');
+    console.log(req.cookies.session);
     res.status(200).send('OK');
+});
+
+// Login Path
+app.post('/login', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    const body = req.body;
+    if (body.email && body.password) {
+        // Check if the email and password are correct
+        const db = require('./utils/database');
+        db.query('SELECT * FROM accounts WHERE email = ? AND password = ?', [body.email.toLowerCase(), hash(body.password)]).then((results: any) => {
+            if (results.length > 0) {
+                // Update the last login time
+                db.query('UPDATE accounts SET lastlogin = ? WHERE email = ?', [new Date(), body.email.toLowerCase()]).catch((err: any) => {
+                    log.error(err);
+                });
+                // Delete any existing sessions
+                db.query('DELETE FROM sessions WHERE email = ?', [body.email.toLowerCase()]).then(() => {
+                    // Create a session
+                    const session = cryptojs.randomBytes(64).toString('hex');
+                    db.query('INSERT INTO sessions (session, email) VALUES (?, ?)', [session, body.email.toLowerCase()]).then(() => {
+                        // Store session as a cookie
+                        req.cookies.path = '/';
+                        req.cookies.session = session;
+                        const domain = req.headers.host.split('.').slice(-2).join('.');
+                        res.redirect(`${req.protocol}://cpanel.${domain}`);
+                    }).catch((err: any) => {
+                        log.error(err); 
+                    });
+                }).catch((err: any) => {
+                    log.error(err);
+                });
+            } else {
+                res.status(401).send('Unauthorized');
+            }
+        }).catch((err: any) => {
+            log.error(err);
+            res.status(500).send('Internal Server Error');
+        });
+    } else {
+        res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);
+    }
 });
 
 /* End Routing */
@@ -134,3 +205,31 @@ app.use(function(req: any, res: any, next: any) {
     if (req.subdomains.length > 0) return next();
     res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);
 });
+
+// Crypto Setup
+const cryptojs = require('node:crypto');
+function hash(password: string) {
+    const [hashedPassword, numberValue, sum] = getHash(password);
+    const hash = cryptojs.createHash('sha512')
+        .update(sum + hashedPassword)
+        .digest('hex');
+    const middle = Math.ceil(hash.length / 2);
+    const prefix = hash.slice(0, middle);
+    const suffix = hash.slice(middle);
+    const salt = cryptojs.createHash('sha512')
+        .update(prefix + numberValue)
+        .digest('hex')
+    const result = `L${salt}A${prefix}P${hashedPassword}Y${suffix}X`;
+    return result;
+}
+
+function getHash(password: string) {
+    const hash = cryptojs.createHash('sha512')
+        .update(password)
+        .digest('hex');
+    let numberValue = hash.replace(/[a-z]/g, '');
+    Array.from(numberValue);
+    numberValue = Object.assign([], numberValue);
+    const sum = numberValue.reduce((acc: string, curr: string, i: number)  => acc + i, 0  )
+    return [hash, numberValue, sum];
+}
