@@ -1,1 +1,24 @@
-Hello world
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1">
+        <title>Control Panel</title>
+        <!-- Preload css -->
+        <link rel="preload" href="css/style.css" as="style" onload="this.rel='stylesheet'">
+        <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style" onload="this.rel='stylesheet'">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+        <!-- Preload js -->
+        <script rel="preload" src="js/script.js" as="script" onload="this.rel='script'"></script>
+        <script defer async src="js/script.js"></script>
+    </head>
+    <body tabindex="-1">
+        <div id="profile">
+            <p id="display_name"></p>
+            <p id="arrow">&#x25BC;</p>
+        </div>
+        <div id="card">
+            <input type="button" id="logout" value="Logout"/>
+        </div>
+    </body>
+</html>

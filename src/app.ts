@@ -31,57 +31,22 @@ const log = {
     warn: (message: string) => console.warn(`${timestamp()} \x1b[33m${message}\x1b[0m`)
 };
 
-// Authentication Setup
-const authentication = require('./utils/authentication');
-
 // Session Setup
 app.use(session({
-    name: 'session',
-    keys: ['key1', 'key2'], // !! Change this !!
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secret: 'secret', // !! Change this !!
+    cookie : {
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        path: '/',
+        domain: '.lillious.com'
+    },
+    resave: true,
+    saveUninitialized: true
 }));
 
 app.set('trust proxy', 1);
 
 // Sub Domain Setup and Static Files Setup
 app.set('subdomain offset', 1);
-
-app.use(vhost('cpanel.*.*', function(req: any, res: any, next: any) {
-        if (req.cookies.session) {
-        authentication.checkSession(req.cookies.session).then((email: string) => {
-            express.static(path.join(__dirname, '/cpanel'), { maxAge: 31557600 })(req, res, next);
-            next();
-        }).catch((err: any) => {
-            log.error(err);
-            const domain = req.headers.host.split('.').slice(-2).join('.');
-            res.redirect(`${res.protocol}://login.${domain}`);
-        });
-    } else {
-        log.info(`User ${req.cookies.session} is not logged in`);
-        const domain = req.headers.host.split('.').slice(-2).join('.');
-        res.redirect(`${res.protocol}://login.${domain}`);
-    }
-}));
-app.use(vhost('login.*.*', express.static(path.join(__dirname, '/login'), { maxAge: 31557600 })));
-
-// Check if the url has repeating slashes at the end of the domain
-app.use(function(req: any, res: any, next: any) {
-    let url = req.url;
-    if (url.match(/\/{2,}$/)) {
-        // Remove repeating slashes at the end of the domain
-        url = url.replace(/\/{2,}$/g, '/');
-        // Redirect to the new url
-        res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}${url}`);
-    } else {
-        next();
-    }
-});
-
-// Root Domain Setup and Static Files Setup
-app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), { maxAge: 31557600 })));
-
-// Localhost Setup and Static Files Setup
-app.use(vhost('localhost', express.static(path.join(__dirname, '/root'), { maxAge: 31557600 })));
 
 // Rate Limiting Setup
 const limiter = rateLimit({
@@ -147,38 +112,48 @@ if (cluster.isPrimary) {
     });
 }
 
-/* Start Routing */
-
-// API Path
-app.get('/api', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=86400');
-    console.log(req.cookies.session);
-    res.status(200).send('OK');
+// Check if the url has repeating slashes at the end of the domain
+app.use(function(req: any, res: any, next: any) {
+    let url = req.url;
+    if (url.match(/\/{2,}$/)) {
+        // Remove repeating slashes at the end of the domain
+        url = url.replace(/\/{2,}$/g, '/');
+        // Redirect to the new url
+        res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}${url}`);
+    } else {
+        next();
+    }
 });
 
-// Login Path
+/* Start Unsecure Routing */
+/* Routes that do not require authentication */
+
+// Login Page
+app.use('/login', express.static(path.join(__dirname, '/login'), { maxAge: 31557600 }));
+
+// Home Page
+app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), { maxAge: 31557600 })));
+
+// Localhost
+app.use(vhost('localhost', express.static(path.join(__dirname, '/root'), { maxAge: 31557600 })));
+
+// Login Post Request
 app.post('/login', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=86400');
     const body = req.body;
     if (body.email && body.password) {
-        // Check if the email and password are correct
         const db = require('./utils/database');
         db.query('SELECT * FROM accounts WHERE email = ? AND password = ?', [body.email.toLowerCase(), hash(body.password)]).then((results: any) => {
             if (results.length > 0) {
-                // Update the last login time
                 db.query('UPDATE accounts SET lastlogin = ? WHERE email = ?', [new Date(), body.email.toLowerCase()]).catch((err: any) => {
                     log.error(err);
                 });
-                // Delete any existing sessions
                 db.query('DELETE FROM sessions WHERE email = ?', [body.email.toLowerCase()]).then(() => {
-                    // Create a session
                     const session = cryptojs.randomBytes(64).toString('hex');
                     db.query('INSERT INTO sessions (session, email) VALUES (?, ?)', [session, body.email.toLowerCase()]).then(() => {
-                        // Store session as a cookie
-                        req.cookies.path = '/';
-                        req.cookies.session = session;
-                        const domain = req.headers.host.split('.').slice(-2).join('.');
-                        res.redirect(`${req.protocol}://cpanel.${domain}`);
+                        res.cookie('session', session, { maxAge: 86400000, httpOnly: true });
+                        log.info(`[LOGIN] ${body.email.toLowerCase()}`);
+                        res.redirect('/cpanel');
                     }).catch((err: any) => {
                         log.error(err); 
                     });
@@ -186,18 +161,73 @@ app.post('/login', (req: any, res: any) => {
                     log.error(err);
                 });
             } else {
-                res.status(401).send('Unauthorized');
+                res.redirect('/login');
             }
         }).catch((err: any) => {
             log.error(err);
-            res.status(500).send('Internal Server Error');
+            res.redirect('/login');
         });
     } else {
         res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);
     }
 });
 
-/* End Routing */
+/* Start Secure Routing */
+/* Routes that require authentication */
+
+app.use(function(req: any, res: any, next: any) {
+    const authentication = require('./utils/authentication');
+    if (!req.cookies.session) return res.redirect('/login');
+    authentication.checkSession(req.cookies.session).then((email: string) => {
+        res.cookie('email', email, { maxAge: 86400000, httpOnly: true });
+        next();
+    }).catch((err: any) => {
+        log.error(err);
+        res.redirect('/login');
+    });
+});
+
+app.post('/logout', (req: any, res: any, next: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    if (req.cookies.session) {
+        const db = require('./utils/database');
+        db.query('DELETE FROM sessions WHERE session = ?', [req.cookies.session]).then(() => {
+            log.error(`[LOGOUT] ${req.cookies.email}`);
+            res.clearCookie('session');
+            res.clearCookie('email');
+            res.redirect('/login');
+        }).catch((err: any) => {
+            log.error(err);
+            res.redirect('/login');
+        });
+    } else {
+        res.redirect('/login');
+    }
+});
+
+app.use('/cpanel', express.static(path.join(__dirname, '/cpanel'), { maxAge: 31557600 }));
+
+// API
+app.get('/api', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    console.log(req.cookies.session);
+    res.status(200).send('OK');
+});
+
+app.get('/api/@me', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    const db = require('./utils/database');
+    db.query('SELECT email FROM accounts WHERE email = ?', [req.cookies.email]).then((results: any) => {
+        if (results.length > 0) {
+            res.status(200).send(results[0]);
+        } else {
+            res.status(404).send('Not Found');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+        res.status(500).send('Internal Server Error');
+    });
+});
 
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any, next: any) {
