@@ -241,9 +241,7 @@ a:hover {
 }
 
 #title {
-    position: fixed;
-    top: 0;
-    left: 25px;
-    font-size: 28px;
+    float: left;
+    font-size: 14px;
     color: #1ed760;
 }
