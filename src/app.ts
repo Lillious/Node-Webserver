@@ -229,6 +229,16 @@ app.get('/api/@me', (req: any, res: any) => {
     });
 });
 
+app.get('/api/serverinfo', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    const serverinfo = {
+        ip: req.socket.remoteAddress,
+        directory: path.basename(__dirname),
+        domain: req.headers.host,
+    };
+    res.status(200).send(serverinfo);
+});
+
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any, next: any) {
     // Check if it is a subdomain

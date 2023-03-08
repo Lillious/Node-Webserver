@@ -65,4 +65,33 @@
             console.error(err);
         });
     }
+    
+    const serverinfo = document.getElementById('server-info');
+    const ip = document.getElementById('server-ip-text');
+    const directory = document.getElementById('home-directory-text');
+    const domain = document.getElementById('primary-domain-text');
+    if (serverinfo) {
+        fetch('/api/serverinfo', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then((res: any) => {
+            console.log(res);
+            if (res.status === 200) {
+                res.json().then((data: any) => {
+                    if (ip) ip.innerHTML = data.ip;
+                    if (directory) directory.innerHTML = data.directory;
+                    if (domain) domain.innerHTML = data.domain;
+                });
+            }
+        })
+        .catch((err: any) => {
+            if (ip) ip.innerHTML = 'Error';
+            if (directory) directory.innerHTML = 'Error';
+            if (domain) domain.innerHTML = 'Error';
+            console.error(err);
+        });
+    }
 })();

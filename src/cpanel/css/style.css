@@ -195,3 +195,24 @@ a:hover {
 #card #logout {
     border-top: 1px solid #474747;
 }
+
+#server-info {
+    top: 100px;
+    right: 25px;
+    width: 300px;
+    position: fixed;
+    box-shadow: 0 0 15px 2px #0e0e0e;
+    line-height: 10px;
+}
+
+#server-info p {
+    padding: 10px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+#server-info h1 {
+    padding: 10px;
+    font-size: 18px;
+}

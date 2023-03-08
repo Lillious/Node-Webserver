@@ -30,6 +30,7 @@ input:not([type=checkbox]) {
     text-indent: 5px;
     border-radius: 2px;
     box-shadow: #131313 2px 2px 5px 1px;
+    transition: 0.2s;
 }
 
 input[type=checkbox] {
