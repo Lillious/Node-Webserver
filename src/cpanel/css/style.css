@@ -211,7 +211,7 @@ a:hover {
     color: #afafaf;
     font-size: 12px;
     font-weight: 400;
-    user-select: all;
+    user-select: text;
 }
 
 #server-info h1 {
@@ -238,4 +238,12 @@ a:hover {
     height: 100%;
     width: 0%;
     background: #1ed760;
+}
+
+#title {
+    position: fixed;
+    top: 0;
+    left: 25px;
+    font-size: 28px;
+    color: #1ed760;
 }
