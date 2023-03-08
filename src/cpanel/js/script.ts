@@ -82,8 +82,8 @@
             if (res.status === 200) {
                 res.json().then((data: any) => {
                     if (ip) ip.innerHTML = data.ip;
-                    if (directory) directory.innerHTML = data.directory;
-                    if (domain) domain.innerHTML = data.domain;
+                    if (directory) directory.innerHTML = `${data.directory}/`;
+                    if (domain) domain.innerHTML = `${data.protocol}://${data.domain}/`;
                 });
             }
         })
@@ -91,6 +91,35 @@
             if (ip) ip.innerHTML = 'Error';
             if (directory) directory.innerHTML = 'Error';
             if (domain) domain.innerHTML = 'Error';
+            console.error(err);
+        });
+    }
+
+    const fileSize = document.getElementById('file-size');
+    if (fileSize) {
+        fetch('/api/fileusage', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then((res: any) => {
+            if (res.status === 200) {
+                res.json().then((data: any) => {
+                    const total = data.total;
+                    const free = data.free;
+                    const used = total - free;
+                    const percentage = Math.round((used / total) * 100);
+                    const bar = document.getElementById('file-size-bar');
+                    const _used = Math.round((used/1e+9) * 10) / 10
+                    const _total = Math.round((total/1e+9) * 10) / 10
+                    fileSize.innerHTML = `${_used} GB / ${_total} GB (${percentage}%)`;
+                    if (bar) bar.style.width = `${percentage}%`;
+                });
+            }
+        })
+        .catch((err: any) => {
+            if (fileSize) fileSize.innerHTML = 'Error';
             console.error(err);
         });
     }

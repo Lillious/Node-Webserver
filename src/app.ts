@@ -139,7 +139,7 @@ app.use(vhost('localhost', express.static(path.join(__dirname, '/root'), { maxAg
 
 // Login Post Request
 app.post('/login', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
     const body = req.body;
     if (body.email && body.password) {
         const db = require('./utils/database');
@@ -176,6 +176,7 @@ app.post('/login', (req: any, res: any) => {
 /* Routes that require authentication */
 
 app.use(function(req: any, res: any, next: any) {
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
     const authentication = require('./utils/authentication');
     if (!req.cookies.session) return res.redirect('/login');
     authentication.checkSession(req.cookies.session).then((email: string) => {
@@ -188,7 +189,7 @@ app.use(function(req: any, res: any, next: any) {
 });
 
 app.post('/logout', (req: any, res: any, next: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
     if (req.cookies.session) {
         const db = require('./utils/database');
         db.query('DELETE FROM sessions WHERE session = ?', [req.cookies.session]).then(() => {
@@ -209,13 +210,13 @@ app.use('/cpanel', express.static(path.join(__dirname, '/cpanel'), { maxAge: 315
 
 // API
 app.get('/api', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
     console.log(req.cookies.session);
     res.status(200).send('OK');
 });
 
 app.get('/api/@me', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
     const db = require('./utils/database');
     db.query('SELECT email FROM accounts WHERE email = ?', [req.cookies.email]).then((results: any) => {
         if (results.length > 0) {
@@ -230,17 +231,32 @@ app.get('/api/@me', (req: any, res: any) => {
 });
 
 app.get('/api/serverinfo', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
     const serverinfo = {
         ip: req.socket.remoteAddress,
         directory: path.basename(__dirname),
         domain: req.headers.host,
+        protocol: req.headers['x-forwarded-proto'] || req.protocol
     };
     res.status(200).send(serverinfo);
 });
 
+app.get('/api/fileusage', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    const fs = require('node:fs');
+    fs.statfs('/', (err: any, stats: any) => {
+        const data = {
+            total: stats.blocks * stats.bsize,
+            free: stats.bfree * stats.bsize,
+            used: (stats.blocks - stats.bfree) * stats.bsize,
+        };
+        res.status(200).send(data);
+    });
+});
+
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any, next: any) {
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
     // Check if it is a subdomain
     if (req.subdomains.length > 0) return next();
     res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);

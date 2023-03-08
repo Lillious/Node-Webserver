@@ -203,16 +203,39 @@ a:hover {
     position: fixed;
     box-shadow: 0 0 15px 2px #0e0e0e;
     line-height: 10px;
+    padding: 10px;
 }
 
 #server-info p {
     padding: 10px;
-    color: #ffffff;
+    color: #afafaf;
     font-size: 12px;
     font-weight: 400;
+    user-select: all;
 }
 
 #server-info h1 {
     padding: 10px;
+    padding-bottom: 0px;
     font-size: 18px;
+    color: #c9c9c9;
+}
+
+#file-size-bar-container {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    height: 5px;
+    margin-top: -12px;
+    background: #282828;
+    border-radius: 2px;
+}
+
+#file-size-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: #1ed760;
 }
