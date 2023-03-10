@@ -1,5 +1,5 @@
 # Node-Webserver
-An easy-to-use webserver powered by ExpressJS
+A secure, lightweight and easy-to-use webserver powered by ExpressJS
 
 # Features
 - Support for subdomains
@@ -8,7 +8,7 @@ An easy-to-use webserver powered by ExpressJS
 - Code minification
 - Request/File Caching
 - Express file compression
-- Blazingly fast and light weight
+- Blazingly fast and lightweight
 - Bun runtime compatible
 - Code linting
 - Typescript
@@ -16,9 +16,10 @@ An easy-to-use webserver powered by ExpressJS
 - Database Connection Pooling
 - Database Query Builder
 - Password Hashing & Salting
+- Plugin System
+- Security System
 
 # Security Features
-- HelmetJS
 - CORS
 - CSRF Protection
 - XSS Protection
@@ -29,27 +30,24 @@ An easy-to-use webserver powered by ExpressJS
 - SQL Injection Protection
 - Authenticated / Unauthenticated Routes
 - Database SSL Support
+- Robot.txt Support
+- Anti-Scrape
+- Automated Attack Detection
+- Bot Detection
 
 # Experimental Features
 - Control Panel (WIP)
 
 # Planned Features
-- Plugin System
-- Robot.txt Support
-- Bot Detection
 - Sample Database
 
-# Planned Security Features
-- Anti-Scrape
+# Planned Security Feature
 - Anti-Proxy
-- Automated Attack Detection
-- Null Routing (DDOS Protection)
 
 # Planned Plugins
 - Captcha
 - Backups
 - Analytics
-- File Manager
 
 # Steps to install, build and run
 - Install

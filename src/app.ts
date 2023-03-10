@@ -1,6 +1,6 @@
 const express = require('express');
 const compression = require('compression');
-const app = express();
+export const app = express();
 const path = require('node:path');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
@@ -11,6 +11,7 @@ const numCPUs = require('node:os').availableParallelism();
 const rateLimit = require('express-rate-limit');
 const vhost = require('vhost');
 const hpp = require('hpp');
+const logging = require ('./utils/logging');
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -21,15 +22,19 @@ app.use(compression());
 app.disable('x-powered-by');
 app.use(hpp());
 
-// Timestamps for Logging
-const timestamp = () => { return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''); }
-
-// Logging Setup
-const log = {
-    info: (message: string) => console.log(`${timestamp()} \x1b[32m${message}\x1b[0m`),
-    error: (message: string) => console.error(`${timestamp()} \x1b[31m${message}\x1b[0m`),
-    warn: (message: string) => console.warn(`${timestamp()} \x1b[33m${message}\x1b[0m`)
-};
+// Plugin System
+const plugins = require('./plugins.json');
+// Read Plugins
+Object.keys(plugins).forEach((plugin: any) => {
+    // Check if the plugin is enabled
+    if (plugins[plugin].enabled) {
+        // Load the plugin
+        if (cluster.isPrimary) {
+            logging.log.info(`Loading Plugin: ${plugin}`);
+        }
+        require(`./plugins/${plugin}`);
+    }
+});
 
 // Session Setup
 app.use(session({
@@ -69,26 +74,26 @@ if (cluster.isPrimary) {
     const db = require('./utils/database');
     db.query('SELECT 1 + 1 AS solution', (err: any, rows: any) => {
         if (err) {
-            log.error(err);
+            logging.log.error(err);
         }
     }).then(() => {
-        log.info(`Database Connection Successful`);
+        logging.log.info(`Database Connection Successful`);
     }).catch((err: any) => {
-        log.error(`Database Connection Failed\n${err}`);
+        logging.log.error(`Database Connection Failed\n${err}`);
     });
     // Fork workers
-    log.info(`Primary ${process.pid} is running on port ${port}`);
+    logging.log.info(`Primary ${process.pid} is running on port ${port}`);
     for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
     }
     // If a worker dies, create a new one to replace it
     cluster.on('exit', (worker: any, code: any, signal: any) => {
-        log.error(`worker ${worker.process.pid} died`);
+        logging.log.error(`worker ${worker.process.pid} died`);
         cluster.fork();
     });
 } else {
     server.listen(port, () => {
-        log.info(`Worker ${process.pid} started`);
+        logging.log.info(`Worker ${process.pid} started`);
     }).on('error', (error: any) => {
         if (error.syscall !== 'listen') {
             throw error;
@@ -99,11 +104,11 @@ if (cluster.isPrimary) {
 
         switch (error.code) {
             case 'EACCES':
-                log.error(`${bind} requires elevated privileges`);
+                logging.log.error(`${bind} requires elevated privileges`);
                 process.exit(1);
                 break;
             case 'EADDRINUSE':
-                log.error(`${bind} is already in use`);
+                logging.log.error(`${bind} is already in use`);
                 process.exit(1);
                 break;
             default:
@@ -146,25 +151,25 @@ app.post('/login', (req: any, res: any) => {
         db.query('SELECT * FROM accounts WHERE email = ? AND password = ?', [body.email.toLowerCase(), hash(body.password)]).then((results: any) => {
             if (results.length > 0) {
                 db.query('UPDATE accounts SET lastlogin = ? WHERE email = ?', [new Date(), body.email.toLowerCase()]).catch((err: any) => {
-                    log.error(err);
+                    logging.log.error(err);
                 });
                 db.query('DELETE FROM sessions WHERE email = ?', [body.email.toLowerCase()]).then(() => {
                     const session = cryptojs.randomBytes(64).toString('hex');
                     db.query('INSERT INTO sessions (session, email) VALUES (?, ?)', [session, body.email.toLowerCase()]).then(() => {
                         res.cookie('session', session, { maxAge: 86400000, httpOnly: true });
-                        log.info(`[LOGIN] ${body.email.toLowerCase()}`);
+                        logging.log.info(`[LOGIN] ${body.email.toLowerCase()}`);
                         res.redirect('/cpanel');
                     }).catch((err: any) => {
-                        log.error(err); 
+                        logging.log.error(err); 
                     });
                 }).catch((err: any) => {
-                    log.error(err);
+                    logging.log.error(err);
                 });
             } else {
                 res.redirect('/login');
             }
         }).catch((err: any) => {
-            log.error(err);
+            logging.log.error(err);
             res.redirect('/login');
         });
     } else {
@@ -183,7 +188,7 @@ app.use(function(req: any, res: any, next: any) {
         res.cookie('email', email, { maxAge: 86400000, httpOnly: true });
         next();
     }).catch((err: any) => {
-        log.error(err);
+        logging.log.error(err);
         res.redirect('/login');
     });
 });
@@ -193,12 +198,12 @@ app.post('/logout', (req: any, res: any, next: any) => {
     if (req.cookies.session) {
         const db = require('./utils/database');
         db.query('DELETE FROM sessions WHERE session = ?', [req.cookies.session]).then(() => {
-            log.error(`[LOGOUT] ${req.cookies.email}`);
+            logging.log.error(`[LOGOUT] ${req.cookies.email}`);
             res.clearCookie('session');
             res.clearCookie('email');
             res.redirect('/login');
         }).catch((err: any) => {
-            log.error(err);
+            logging.log.error(err);
             res.redirect('/login');
         });
     } else {
@@ -225,7 +230,7 @@ app.get('/api/@me', (req: any, res: any) => {
             res.status(404).send('Not Found');
         }
     }).catch((err: any) => {
-        log.error(err);
+        logging.log.error(err);
         res.status(500).send('Internal Server Error');
     });
 });

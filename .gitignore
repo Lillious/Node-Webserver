@@ -133,3 +133,6 @@ dist
 *.pem
 *.crt
 *.pfx
+
+# Rest
+*.http
