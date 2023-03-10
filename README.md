@@ -2,37 +2,68 @@
 An easy-to-use webserver powered by ExpressJS
 
 # Features
-- Adjustable Rate limiting
 - Support for subdomains
 - Cluster module
 - Support for multiple file types (adjustable in package.json)
-- Api path at /api
-- Code minifier
+- Code minification
 - Request/File Caching
 - Express file compression
-- HTTP Parameter Pollution protection
 - Blazingly fast and light weight
-- Works with the Bun runtime!
-- ESLINT
+- Bun runtime compatible
+- Code linting
 - Typescript
-- Database Connection Utility
+- Secure Database Connection Utility
+- Database Connection Pooling
+- Database Query Builder
+- Password Hashing & Salting
+
+# Security Features
+- HelmetJS
+- CORS
+- CSRF Protection
+- XSS Protection
+- HSTS
+- Content Security Policy
+- Rate Limiting
+- HTTP Parameter Pollution Protection
+- SQL Injection Protection
+- Authenticated / Unauthenticated Routes
+- Database SSL Support
 
 # Experimental Features
 - Control Panel (WIP)
+
+# Planned Features
+- Plugin System
+- Robot.txt Support
+- Bot Detection
+- Sample Database
+
+# Planned Security Features
+- Anti-Scrape
+- Anti-Proxy
+- Automated Attack Detection
+- Null Routing (DDOS Protection)
+
+# Planned Plugins
+- Captcha
+- Backups
+- Analytics
+- File Manager
 
 # Steps to install, build and run
 - Install
 ```
 npm i
 ```
-- Build
-```
-npm run build
-```
-- Start
+- Running
 ```
 npm start
 ```
+
+# Requirements
+NodeJS v19.7.0 +
+
 # Creating a subdomain
 - Create a folder inside /src
 Example: ``mynewsubdomain``
