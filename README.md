@@ -17,6 +17,9 @@ An easy-to-use webserver powered by ExpressJS
 - Typescript
 - Database Connection Utility
 
+# Experimental Features
+- Control Panel (WIP)
+
 # Steps to install, build and run
 - Install
 ```
