@@ -35,6 +35,7 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Automated Attack Detection
 - Bot Detection
 - Token stealing prevention
+- Email based 2FA
 
 # Experimental Features
 - Control Panel (WIP)
