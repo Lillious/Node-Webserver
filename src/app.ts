@@ -156,7 +156,7 @@ app.post('/login', (req: any, res: any) => {
                 db.query('DELETE FROM sessions WHERE email = ?', [body.email.toLowerCase()]).then(() => {
                     const session = cryptojs.randomBytes(64).toString('hex');
                     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-                    db.query('INSERT INTO sessions (session, email, ip`) VALUES (?, ?, ?)', [session, body.email.toLowerCase(), ip]).then(() => {
+                    db.query('INSERT INTO sessions (session, email, ip) VALUES (?, ?, ?)', [session, body.email.toLowerCase(), ip]).then(() => {
                         res.cookie('session', session, { maxAge: 86400000, httpOnly: true });
                         logging.log.info(`[LOGIN] ${body.email.toLowerCase()}`);
                         res.redirect('/cpanel');
