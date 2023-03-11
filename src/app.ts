@@ -12,6 +12,7 @@ const rateLimit = require('express-rate-limit');
 const vhost = require('vhost');
 const hpp = require('hpp');
 const logging = require ('./utils/logging');
+const email = require('./utils/mailer');
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -156,10 +157,26 @@ app.post('/login', (req: any, res: any) => {
                 db.query('DELETE FROM sessions WHERE email = ?', [body.email.toLowerCase()]).then(() => {
                     const session = cryptojs.randomBytes(64).toString('hex');
                     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-                    db.query('INSERT INTO sessions (session, email, ip) VALUES (?, ?, ?)', [session, body.email.toLowerCase(), ip]).then(() => {
+                    // Create 2FA code from cookie session
+                    const shuffle = (str: string) => {
+                        const arr = str.split('');
+                        let n = arr.length;
+                        while (n > 0) {
+                            const i = Math.floor(Math.random() * n--);
+                            const tmp = arr[n];
+                            arr[n] = arr[i];
+                            arr[i] = tmp;
+                        }
+                      return arr.join('').slice(0, 6).toUpperCase();
+                    }
+                    const code = shuffle(session);
+                    const _email = body.email.toLowerCase();
+                    db.query('INSERT INTO sessions (session, email, ip, code) VALUES (?, ?, ?, ?)', [session, _email, ip, code]).then(() => {
                         res.cookie('session', session, { maxAge: 86400000, httpOnly: true });
-                        logging.log.info(`[LOGIN] ${body.email.toLowerCase()}`);
-                        res.redirect('/cpanel');
+                        res.cookie('email', _email, { maxAge: 86400000, httpOnly: true });
+                        logging.log.info(`[LOGIN] ${_email}`);
+                        email.send(_email, code);
+                        res.sendFile(path.join(__dirname, 'login/2fa.html'));
                     }).catch((err: any) => {
                         logging.log.error(err); 
                     });
@@ -178,6 +195,25 @@ app.post('/login', (req: any, res: any) => {
     }
 });
 
+app.post ('/2fa', (req: any, res: any) => {
+    const db = require('./utils/database');
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    const body = req.body;
+    const authentication = require('./utils/authentication');
+    if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
+    authentication.checkCode(req.cookies.email, body.code).then((results: any) => {
+        if (!results) return res.redirect('/login');
+        db.query('UPDATE sessions SET code = ? WHERE email = ?', ['0', req.cookies.email]).catch((err: any) => {
+            logging.log.error(err);
+        }).then(() => {
+            res.redirect('/cpanel');
+        });
+    }).catch((err: any) => {
+        logging.log.error(err);
+        res.redirect('/login');
+    });
+});
+
 /* Start Secure Routing */
 /* Routes that require authentication */
 
@@ -186,9 +222,15 @@ app.use(function(req: any, res: any, next: any) {
     const authentication = require('./utils/authentication');
     if (!req.cookies.session) return res.redirect('/login');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    authentication.checkSession(req.cookies.session, ip).then((email: string) => {
-        res.cookie('email', email, { maxAge: 86400000, httpOnly: true });
-        next();
+    authentication.checkSession(req.cookies.session, ip).then((results: any) => {
+        if (!results) return res.redirect('/login');
+        authentication.checkCode(req.cookies.email, '0').then((results: any) => {
+            if (!results) return res.redirect('/login');
+            next();
+        }).catch((err: any) => {
+            logging.log.error(err);
+            return res.redirect('/login');
+        });
     }).catch((err: any) => {
         logging.log.error(err);
         res.redirect('/login');
@@ -213,12 +255,11 @@ app.post('/logout', (req: any, res: any, next: any) => {
     }
 });
 
-app.use('/cpanel', express.static(path.join(__dirname, '/cpanel'), { maxAge: 31557600 }));
+app.use('/cpanel', express.static(path.join(__dirname, '/cpanel')));
 
 // API
 app.get('/api', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
-    console.log(req.cookies.session);
     res.status(200).send('OK');
 });
 

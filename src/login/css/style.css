@@ -38,14 +38,14 @@ input[type=checkbox] {
     width: 15px;
 }
 
-input[type=email]:focus, input[type=password]:focus {
+input[type=email]:focus, input[type=password]:focus, input[type=text]:focus {
     outline-style: solid;
     outline-color: #1ed760;
     outline-width: 2px;
     transition: 0.2s;
 }
 
-input[type=email]:hover:not(:focus), input[type=password]:hover:not(:focus) {
+input[type=email]:hover:not(:focus), input[type=password]:hover:not(:focus), input[type=text]:hover:not(:focus) {
     outline-style: solid;
     outline-color: rgba(255, 255, 255, 0.212);
     outline-width: 2px;

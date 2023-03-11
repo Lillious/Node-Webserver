@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1">
+        <title>Login</title>
+        <!-- Preload css -->
+        <link rel="preload" href="./login/css/style.css" as="style" onload="this.rel='stylesheet'">
+        <link rel="stylesheet" href="./login/css/style.css">
+        <!-- Preload js -->
+        <script rel="preload" src="js/script.js" as="script" onload="this.rel='script'"></script>
+        <script defer async src="js/script.js"></script>
+    </head>
+    <body>
+        <div id="container">
+            <div id="login-form">
+                <h1>Extra Verification</h1>
+                <p>A code was sent to the email on file</p>
+                <form action="/2fa" method="post">
+                    <input type="text" name="code" id="code" placeholder="123456" required autocomplete="off" spellcheck="false">
+                    <br><br>
+                    <center>
+                        <button type="submit" value="Login">Submit</button>
+                    </center>
+                </form>
+            </div>
+    </body>
+</html>
