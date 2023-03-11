@@ -35,7 +35,6 @@ const paths = [
 ]
 server.app.use(function(req: any, res: any, next: any) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-access-token');
     const found = paths.some(element => {
         if (req.url.includes(element)) {

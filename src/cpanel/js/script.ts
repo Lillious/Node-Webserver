@@ -115,6 +115,11 @@
                     const _total = Math.round((total/1e+9) * 10) / 10
                     fileSize.innerHTML = `${_used} GB / ${_total} GB (${percentage}%)`;
                     if (bar) bar.style.width = `${percentage}%`;
+                    if (percentage >= 75 && percentage < 90) {
+                        if (bar) bar.style.backgroundColor = '#f9a825';
+                    } else if (percentage >= 90) {
+                        if (bar) bar.style.backgroundColor = '#e74c3c';
+                    }
                 });
             }
         })
