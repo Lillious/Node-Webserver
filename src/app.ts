@@ -155,7 +155,8 @@ app.post('/login', (req: any, res: any) => {
                 });
                 db.query('DELETE FROM sessions WHERE email = ?', [body.email.toLowerCase()]).then(() => {
                     const session = cryptojs.randomBytes(64).toString('hex');
-                    db.query('INSERT INTO sessions (session, email) VALUES (?, ?)', [session, body.email.toLowerCase()]).then(() => {
+                    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+                    db.query('INSERT INTO sessions (session, email, ip`) VALUES (?, ?, ?)', [session, body.email.toLowerCase(), ip]).then(() => {
                         res.cookie('session', session, { maxAge: 86400000, httpOnly: true });
                         logging.log.info(`[LOGIN] ${body.email.toLowerCase()}`);
                         res.redirect('/cpanel');
@@ -184,7 +185,8 @@ app.use(function(req: any, res: any, next: any) {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     const authentication = require('./utils/authentication');
     if (!req.cookies.session) return res.redirect('/login');
-    authentication.checkSession(req.cookies.session).then((email: string) => {
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    authentication.checkSession(req.cookies.session, ip).then((email: string) => {
         res.cookie('email', email, { maxAge: 86400000, httpOnly: true });
         next();
     }).catch((err: any) => {

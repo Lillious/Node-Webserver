@@ -34,6 +34,7 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Anti-Scrape
 - Automated Attack Detection
 - Bot Detection
+- Token stealing prevention
 
 # Experimental Features
 - Control Panel (WIP)
