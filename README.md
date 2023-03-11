@@ -73,3 +73,37 @@ Example:
 ```js
 app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'))));
 ```
+
+# Creating a Database Connection
+Required Environment Variables
+```
+DATABASE_HOST
+DATABASE_USER
+DATABASE_PASSWORD
+DATABASE_PORT
+DATABASE_NAME
+```
+
+# Using the query builder
+```js
+db.query('SELECT someRow FROM someTable WHERE someValue = ? STATEMENT', [someValue]).then((results) => {
+    // Do something with results
+}).catch(err) {
+    logging.log.error(err);
+}
+
+```
+
+# Creating an email connection
+(Located in utils/mailer.ts)
+```js
+const transporter = nodemailer.createTransport({
+    host: '',
+    port: 465,
+    secure: true,
+    auth: {
+        user: '',
+        pass: ''
+    }
+});
+```
