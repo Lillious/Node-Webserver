@@ -108,3 +108,9 @@ const transporter = nodemailer.createTransport({
     }
 });
 ```
+
+# Sending an email
+```js
+const email = require('./utils/mailer');
+email.send(_email, _2FACode);
+```
