@@ -91,7 +91,7 @@ db.query('SELECT someRow FROM someTable WHERE someValue = ? STATEMENT', [someVal
     // Do something with results
 }).catch(err) {
     logging.log.error(err);
-}
+};
 
 ```
 
