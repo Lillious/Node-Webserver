@@ -30,7 +30,8 @@ const paths = [
     'phpstorm',
     'mlrpc.php',
     'get_targets',
-    'upl.php'
+    'upl.php',
+    'phpmyadmin',
 ]
 server.app.use(function(req: any, res: any, next: any) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
