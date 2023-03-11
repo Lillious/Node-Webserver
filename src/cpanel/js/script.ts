@@ -54,7 +54,6 @@
             },
         })
         .then((res: any) => {
-            console.log(res);
             if (res.status === 200) {
                 res.json().then((data: any) => {
                     display_name.innerHTML = data.email;
@@ -78,7 +77,6 @@
             },
         })
         .then((res: any) => {
-            console.log(res);
             if (res.status === 200) {
                 res.json().then((data: any) => {
                     if (ip) ip.innerHTML = data.ip;
