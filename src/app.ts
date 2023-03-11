@@ -207,6 +207,8 @@ app.post ('/2fa', (req: any, res: any) => {
             logging.log.error(err);
         }).then(() => {
             res.redirect('/cpanel');
+        }).catch((err: any) => {
+            logging.log.error(err);
         });
     }).catch((err: any) => {
         logging.log.error(err);
