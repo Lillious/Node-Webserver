@@ -73,7 +73,7 @@ const server = http.createServer(app);
 if (cluster.isPrimary) {
     // Test Database Connection
     const db = require('./utils/database');
-    db.query('SELECT 1 + 1 AS solution', (err: any, rows: any) => {
+    db.query('SELECT 1 + 1 AS solution', (err: any) => {
         if (err) {
             logging.log.error(err);
         }
@@ -88,7 +88,7 @@ if (cluster.isPrimary) {
         cluster.fork();
     }
     // If a worker dies, create a new one to replace it
-    cluster.on('exit', (worker: any, code: any, signal: any) => {
+    cluster.on('exit', (worker: any) => {
         logging.log.error(`worker ${worker.process.pid} died`);
         cluster.fork();
     });
@@ -239,7 +239,7 @@ app.use(function(req: any, res: any, next: any) {
     });
 });
 
-app.post('/logout', (req: any, res: any, next: any) => {
+app.post('/logout', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     if (req.cookies.session) {
         const db = require('./utils/database');

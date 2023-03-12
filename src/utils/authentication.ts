@@ -1,5 +1,4 @@
 const db = require('./database');
-const logging = require('./logging');
 
 export const checkSession = (session: string, ip: string) => {
     return new Promise((resolve, reject) => {
