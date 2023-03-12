@@ -155,6 +155,8 @@ app.use(vhost('localhost', express.static(path.join(__dirname, '/root'), {
 
 // Login Post Request
 app.post('/login', (req: any, res: any) => {
+    res.clearCookie('session');
+    res.clearCookie('email');
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     const body = req.body;
     if (body.email && body.password) {

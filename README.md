@@ -19,6 +19,7 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Plugin System
 - Security System
 - Account Creation
+- Sample Database
 
 # Security Features
 - CORS
@@ -44,7 +45,6 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Control Panel (WIP)
 
 # Planned Features
-- Sample Database
 
 # Planned Security Feature
 - Anti-Proxy
@@ -122,3 +122,7 @@ const transporter = nodemailer.createTransport({
 const email = require('./utils/mailer');
 email.send(_email, _2FACode);
 ```
+
+# Importing the sample SQL database
+Location: "src/utils/sample database/cpanel.sql"
+Replace UPDATE_TO_YOUR_EMAIL_ADDRESS with your email address for the system admin account
