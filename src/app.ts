@@ -11,13 +11,15 @@ const numCPUs = require('node:os').availableParallelism();
 const rateLimit = require('express-rate-limit');
 const vhost = require('vhost');
 const hpp = require('hpp');
-const logging = require ('./utils/logging');
+const logging = require('./utils/logging');
 const email = require('./utils/mailer');
 
 // View Engine Setup
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({
+    extended: false
+}));
 app.use(cookieParser());
 app.use(compression());
 app.disable('x-powered-by');
@@ -33,14 +35,18 @@ Object.keys(plugins).forEach((plugin: any) => {
         if (cluster.isPrimary) {
             logging.log.info(`Loading Plugin: ${plugin}`);
         }
-        require(`./plugins/${plugin}`);
+        try {
+            require(`./plugins/${plugin}`);
+        } catch (err: any) {
+            logging.log.error(`Failed to load plugin: ${plugin}\n${err}`);
+        }
     }
 });
 
 // Session Setup
 app.use(session({
     secret: 'secret', // !! Change this !!
-    cookie : {
+    cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         path: '/',
         domain: '.lillious.com'
@@ -73,15 +79,13 @@ const server = http.createServer(app);
 if (cluster.isPrimary) {
     // Test Database Connection
     const db = require('./utils/database');
-    db.query('SELECT 1 + 1 AS solution', (err: any) => {
-        if (err) {
-            logging.log.error(err);
-        }
-    }).then(() => {
-        logging.log.info(`Database Connection Successful`);
-    }).catch((err: any) => {
-        logging.log.error(`Database Connection Failed\n${err}`);
-    });
+    db.query('SELECT 1 + 1 AS solution')
+        .then(() => {
+            logging.log.info(`Database Connection Successful`);
+        })
+        .catch((err: any) => {
+            logging.log.error(`Database Connection Failed\n${err}`);
+        });
     // Fork workers
     logging.log.info(`Primary ${process.pid} is running on port ${port}`);
     for (let i = 0; i < numCPUs; i++) {
@@ -135,13 +139,19 @@ app.use(function(req: any, res: any, next: any) {
 /* Routes that do not require authentication */
 
 // Login Page
-app.use('/login', express.static(path.join(__dirname, '/login'), { maxAge: 31557600 }));
+app.use('/login', express.static(path.join(__dirname, '/login'), {
+    maxAge: 31557600
+}));
 
 // Home Page
-app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), { maxAge: 31557600 })));
+app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), {
+    maxAge: 31557600
+})));
 
 // Localhost
-app.use(vhost('localhost', express.static(path.join(__dirname, '/root'), { maxAge: 31557600 })));
+app.use(vhost('localhost', express.static(path.join(__dirname, '/root'), {
+    maxAge: 31557600
+})));
 
 // Login Post Request
 app.post('/login', (req: any, res: any) => {
@@ -149,71 +159,80 @@ app.post('/login', (req: any, res: any) => {
     const body = req.body;
     if (body.email && body.password) {
         const db = require('./utils/database');
-        db.query('SELECT * FROM accounts WHERE email = ? AND password = ?', [body.email.toLowerCase(), hash(body.password)]).then((results: any) => {
-            if (results.length > 0) {
-                db.query('UPDATE accounts SET lastlogin = ? WHERE email = ?', [new Date(), body.email.toLowerCase()]).catch((err: any) => {
-                    logging.log.error(err);
-                });
-                db.query('DELETE FROM sessions WHERE email = ?', [body.email.toLowerCase()]).then(() => {
-                    const session = cryptojs.randomBytes(64).toString('hex');
-                    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-                    // Create 2FA code from cookie session
-                    const shuffle = (str: string) => {
-                        const arr = str.split('');
-                        let n = arr.length;
-                        while (n > 0) {
-                            const i = Math.floor(Math.random() * n--);
-                            const tmp = arr[n];
-                            arr[n] = arr[i];
-                            arr[i] = tmp;
+        db.query('SELECT * FROM accounts WHERE email = ? AND password = ?', [body.email.toLowerCase(), hash(body.password)])
+            .then((results: any) => {
+                if (results.length > 0) {
+                    db.query('UPDATE accounts SET lastlogin = ? WHERE email = ?', [new Date(), body.email.toLowerCase()])
+                        .catch((err: any) => {
+                            logging.log.error(err);
+                        });
+                    db.query('DELETE FROM sessions WHERE email = ?', [body.email.toLowerCase()]).then(() => {
+                        const session = cryptojs.randomBytes(64).toString('hex');
+                        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+                        // Create 2FA code from cookie session
+                        const shuffle = (str: string) => {
+                            const arr = str.split('');
+                            let n = arr.length;
+                            while (n > 0) {
+                                const i = Math.floor(Math.random() * n--);
+                                const tmp = arr[n];
+                                arr[n] = arr[i];
+                                arr[i] = tmp;
+                            }
+                            return arr.join('').slice(0, 6).toUpperCase();
                         }
-                      return arr.join('').slice(0, 6).toUpperCase();
-                    }
-                    const code = shuffle(session);
-                    const _email = body.email.toLowerCase();
-                    db.query('INSERT INTO sessions (session, email, ip, code) VALUES (?, ?, ?, ?)', [session, _email, ip, code]).then(() => {
-                        res.cookie('session', session, { maxAge: 86400000, httpOnly: true });
-                        res.cookie('email', _email, { maxAge: 86400000, httpOnly: true });
-                        logging.log.info(`[LOGIN] ${_email}`);
-                        email.send(_email, code);
-                        res.sendFile(path.join(__dirname, 'login/2fa.html'));
+                        const code = shuffle(session);
+                        const _email = body.email.toLowerCase();
+                        db.query('INSERT INTO sessions (session, email, ip, code) VALUES (?, ?, ?, ?)', [session, _email, ip, code])
+                            .then(() => {
+                                res.cookie('session', session, {
+                                    maxAge: 86400000,
+                                    httpOnly: true
+                                });
+                                res.cookie('email', _email, {
+                                    maxAge: 86400000,
+                                    httpOnly: true
+                                });
+                                logging.log.info(`[LOGIN] ${_email}`);
+                                email.send(_email, code);
+                                res.sendFile(path.join(__dirname, 'login/2fa.html'));
+                            }).catch((err: any) => {
+                                logging.log.error(err);
+                            });
                     }).catch((err: any) => {
-                        logging.log.error(err); 
+                        logging.log.error(err);
                     });
-                }).catch((err: any) => {
-                    logging.log.error(err);
-                });
-            } else {
+                } else {
+                    res.redirect('/login');
+                }
+            }).catch((err: any) => {
+                logging.log.error(err);
                 res.redirect('/login');
-            }
-        }).catch((err: any) => {
-            logging.log.error(err);
-            res.redirect('/login');
-        });
+            });
     } else {
         res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);
     }
 });
 
-app.post ('/2fa', (req: any, res: any) => {
+app.post('/2fa', (req: any, res: any) => {
     const db = require('./utils/database');
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     const body = req.body;
     const authentication = require('./utils/authentication');
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
-    authentication.checkCode(req.cookies.email, body.code).then((results: any) => {
-        if (!results) return res.redirect('/login');
-        db.query('UPDATE sessions SET code = ? WHERE email = ?', ['0', req.cookies.email]).catch((err: any) => {
-            logging.log.error(err);
-        }).then(() => {
-            res.redirect('/cpanel');
+    authentication.checkCode(req.cookies.email, body.code)
+        .then((results: any) => {
+            if (!results) return res.redirect('/login');
+            db.query('UPDATE sessions SET code = ? WHERE email = ?', ['0', req.cookies.email])
+                .then(() => {
+                    res.redirect('/cpanel');
+                }).catch((err: any) => {
+                    logging.log.error(err);
+                });
         }).catch((err: any) => {
             logging.log.error(err);
+            res.redirect('/login');
         });
-    }).catch((err: any) => {
-        logging.log.error(err);
-        res.redirect('/login');
-    });
 });
 
 /* Start Secure Routing */
@@ -224,34 +243,38 @@ app.use(function(req: any, res: any, next: any) {
     const authentication = require('./utils/authentication');
     if (!req.cookies.session) return res.redirect('/login');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    authentication.checkSession(req.cookies.session, ip).then((results: any) => {
-        if (!results) return res.redirect('/login');
-        authentication.checkCode(req.cookies.email, '0').then((results: any) => {
+    authentication.checkSession(req.cookies.session, ip)
+        .then((results: any) => {
             if (!results) return res.redirect('/login');
-            next();
+            authentication.checkCode(req.cookies.email, '0')
+                .then((results: any) => {
+                    if (!results) return res.redirect('/login');
+                    next();
+                }).catch((err: any) => {
+                    logging.log.error(err);
+                    return res.redirect('/login');
+                });
         }).catch((err: any) => {
             logging.log.error(err);
-            return res.redirect('/login');
+            res.redirect('/login');
         });
-    }).catch((err: any) => {
-        logging.log.error(err);
-        res.redirect('/login');
-    });
 });
 
 app.post('/logout', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     if (req.cookies.session) {
         const db = require('./utils/database');
-        db.query('DELETE FROM sessions WHERE session = ?', [req.cookies.session]).then(() => {
-            logging.log.error(`[LOGOUT] ${req.cookies.email}`);
-            res.clearCookie('session');
-            res.clearCookie('email');
-            res.redirect('/login');
-        }).catch((err: any) => {
-            logging.log.error(err);
-            res.redirect('/login');
-        });
+        db.query('DELETE FROM sessions WHERE session = ?', [req.cookies.session])
+            .then(() => {
+                logging.log.error(`[LOGOUT] ${req.cookies.email}`);
+                res.clearCookie('session');
+                res.clearCookie('email');
+                res.redirect('/login');
+            })
+            .catch((err: any) => {
+                logging.log.error(err);
+                res.redirect('/login');
+            });
     } else {
         res.redirect('/login');
     }
@@ -268,16 +291,18 @@ app.get('/api', (req: any, res: any) => {
 app.get('/api/@me', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     const db = require('./utils/database');
-    db.query('SELECT email FROM accounts WHERE email = ?', [req.cookies.email]).then((results: any) => {
-        if (results.length > 0) {
-            res.status(200).send(results[0]);
-        } else {
-            res.status(404).send('Not Found');
-        }
-    }).catch((err: any) => {
-        logging.log.error(err);
-        res.status(500).send('Internal Server Error');
-    });
+    db.query('SELECT email FROM accounts WHERE email = ?', [req.cookies.email])
+        .then((results: any) => {
+            if (results.length > 0) {
+                res.status(200).send(results[0]);
+            } else {
+                res.status(404).send('Not Found');
+            }
+        })
+        .catch((err: any) => {
+            logging.log.error(err);
+            res.status(500).send('Internal Server Error');
+        });
 });
 
 app.get('/api/serverinfo', (req: any, res: any) => {
@@ -314,6 +339,7 @@ app.use(function(req: any, res: any, next: any) {
 
 // Crypto Setup
 const cryptojs = require('node:crypto');
+
 function hash(password: string) {
     const [hashedPassword, numberValue, sum] = getHash(password);
     const hash = cryptojs.createHash('sha512')
@@ -336,6 +362,6 @@ function getHash(password: string) {
     let numberValue = hash.replace(/[a-z]/g, '');
     Array.from(numberValue);
     numberValue = Object.assign([], numberValue);
-    const sum = numberValue.reduce((acc: string, curr: string, i: number)  => acc + i, 0  )
+    const sum = numberValue.reduce((acc: string, curr: string, i: number) => acc + i, 0)
     return [hash, numberValue, sum];
 }

@@ -19,11 +19,11 @@ export const send = (email: string, code: string) => {
         subject: 'Verification Code',
         text: `Your verification code is: ${code}`
     };
-    transporter.sendMail(mailOptions, function(error:any, info: any){
+    transporter.sendMail(mailOptions, function(error: any, info: any) {
         if (error) {
-          logging.log.error(error);
+            logging.log.error(error);
         } else {
-          logging.log.info('Email sent: ' + info.response);
+            logging.log.info('Email sent: ' + info.response);
         }
-      });
+    });
 }
