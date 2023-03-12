@@ -1,0 +1,14 @@
+{
+    "analytics": {
+        "enabled": false,
+        "GoogleAnalytics": {
+            "TrackingId": ""
+        }
+    },
+    "captcha": {
+        "enabled": false
+    },
+    "security": {
+        "enabled": true
+    }
+}

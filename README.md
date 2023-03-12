@@ -1,35 +1,72 @@
 # Node-Webserver
-An easy-to-use webserver powered by ExpressJS
+A secure, lightweight and easy-to-use webserver powered by ExpressJS
 
 # Features
-- Adjustable Rate limiting
 - Support for subdomains
 - Cluster module
 - Support for multiple file types (adjustable in package.json)
-- Api path at /api
-- Code minifier
+- Code minification
 - Request/File Caching
 - Express file compression
-- HTTP Parameter Pollution protection
-- Blazingly fast and light weight
-- Works with the Bun runtime!
-- ESLINT
+- Blazingly fast and lightweight
+- Bun runtime compatible
+- Code linting
 - Typescript
-- Database Connection Utility
+- Secure Database Connection Utility
+- Database Connection Pooling
+- Database Query Builder
+- Password Hashing & Salting
+- Plugin System
+- Security System
+- Account Creation
+
+# Security Features
+- CORS
+- CSRF Protection
+- XSS Protection
+- HSTS
+- Content Security Policy
+- Rate Limiting
+- HTTP Parameter Pollution Protection
+- SQL Injection Protection
+- Authenticated / Unauthenticated Routes
+- Database SSL Support
+- Robot.txt Support
+- Anti-Scrape
+- Automated Attack Detection
+- Bot Detection
+- Token stealing prevention
+- Email based 2FA /w resend option
+- Email based password Reset
+- Permission System
+
+# Experimental Features
+- Control Panel (WIP)
+
+# Planned Features
+- Sample Database
+
+# Planned Security Feature
+- Anti-Proxy
+
+# Planned Plugins
+- Captcha
+- Backups
+- Analytics
 
 # Steps to install, build and run
 - Install
 ```
 npm i
 ```
-- Build
-```
-npm run build
-```
-- Start
+- Running
 ```
 npm start
 ```
+
+# Requirements
+NodeJS v19.7.0 +
+
 # Creating a subdomain
 - Create a folder inside /src
 Example: ``mynewsubdomain``
@@ -39,4 +76,49 @@ Example:
 
 ```js
 app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'))));
+```
+
+# Creating a Database Connection
+Required Environment Variables
+```
+DATABASE_HOST
+DATABASE_USER
+DATABASE_PASSWORD
+DATABASE_PORT
+DATABASE_NAME
+EMAIL_HOST
+EMAIL_PORT
+EMAIL_SECURE
+EMAIL_USER
+EMAIL_PASSWORD
+```
+
+# Using the query builder
+```js
+db.query('SELECT someRow FROM someTable WHERE someValue = ? STATEMENT', [someValue]).then((results) => {
+    // Do something with results
+}).catch(err) {
+    logging.log.error(err);
+};
+
+```
+
+# Creating an email connection
+(Located in utils/mailer.ts)
+```js
+const transporter = nodemailer.createTransport({
+    host: '',
+    port: 465,
+    secure: true,
+    auth: {
+        user: '',
+        pass: ''
+    }
+});
+```
+
+# Sending an email
+```js
+const email = require('./utils/mailer');
+email.send(_email, _2FACode);
 ```

@@ -10,12 +10,10 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
         <!-- Preload js -->
         <script rel="preload" src="../js/script.js" as="script" onload="this.rel='script'"></script>
-        <script rel="preload" src="../js/serverinfo.js" as="script" onload="this.rel='script'"></script>
         <script defer async src="../js/script.js"></script>
-        <script defer async src="../js/serverinfo.js"></script>
     </head>
     <body tabindex="-1">
-        <h1 id="title">Control Panel</h1>
+        <h1 id="title">Account Settings</h1>
         <div id="profile">
             <p id="display_name"></p>
             <p id="arrow">&#x25BC;</p>
@@ -26,20 +24,17 @@
             <input type="button" id="settings" value="Settings"/>
         </div>
         <div id="info-panel">
-            <h1 id="primary-domain">Domain</h1>
-            <p id="primary-domain-text"></p>
+            <h1 id="reset-password">Reset Password</h1>
+            <form action="/reset-password" method="post">
+                <button type="submit" id="reset-password-button">Reset</button>
+            </form>
             <hr>
-            <h1 id="server-ip">IP Address</h1>
-            <p id="server-ip-text"></p>
-            <hr>
-            <h1 id="home-directory">Home Directory</h1>
-            <p id="home-directory-text"></p>
-            <hr>
-            <h1>Disk Usage</h1>
-            <p id="file-size"></p>
-            <div id="file-size-bar-container">
-                <div id="file-size-bar"></div>
-            </div>
+            <h1 id="create-account">Create Account</h1>
+            <form action="/api/create-account" method="post">
+                <input type="email" name="email" id="email" placeholder="example@domain.com" required autocomplete="off" spellcheck="false">
+                <br><br>
+                <button type="submit" id="create-account-button">Create</button>
+            </form>
         </div>
     </body>
 </html>
