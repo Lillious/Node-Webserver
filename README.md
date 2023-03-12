@@ -18,6 +18,7 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Password Hashing & Salting
 - Plugin System
 - Security System
+- Account Creation
 
 # Security Features
 - CORS
@@ -37,6 +38,7 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Token stealing prevention
 - Email based 2FA
 - Email based password Reset
+- Permission System
 
 # Experimental Features
 - Control Panel (WIP)

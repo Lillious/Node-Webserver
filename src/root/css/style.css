@@ -106,6 +106,7 @@ hr {
 a:hover {
     color: #ffffff;
     transition: 0.2s;
+    cursor: pointer;
 }
 
 

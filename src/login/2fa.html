@@ -19,7 +19,13 @@
                     <input type="text" name="code" id="code" placeholder="123456" required autocomplete="off" spellcheck="false" autofocus>
                     <br><br>
                     <center>
-                        <button type="submit" value="Login">Submit</button>
+                        <button type="submit">Submit</button>
+                    </center>
+                </form>
+                <br>
+                <form action="/2fa/resend" method="post">
+                    <center>
+                        <a type="submit" onclick="this.closest('form').submit();return false;">Resend Code</a>
                     </center>
                 </form>
             </div>

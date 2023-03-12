@@ -168,10 +168,12 @@ app.post('/login', (req: any, res: any) => {
                     // Check if the account needs a password reset
                     if (results[0].passwordreset == '1') return res.sendFile(path.join(__dirname, '/login/passwordreset.html'));
                     db.query('UPDATE accounts SET lastlogin = ? WHERE email = ?', [new Date(), body.email.toLowerCase()])
+                        .then(() => {
+                            createSession(req, res, body.email.toLowerCase());
+                        })
                         .catch((err: any) => {
                             logging.log.error(err);
                         });
-                        createSession(req, res, body.email.toLowerCase());
                 } else {
                     res.redirect('/login');
                 }
@@ -200,8 +202,13 @@ app.post('/2fa', (req: any, res: any) => {
                 });
         }).catch((err: any) => {
             logging.log.error(err);
-            res.redirect('/login');
+            res.redirect('/login/2fa.html');
         });
+});
+
+app.post('/2fa/resend', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    createSession(req, res, req.cookies.email);
 });
 
 app.post('/api/reset-password', (req: any, res: any) => {
@@ -246,12 +253,10 @@ app.use(function(req: any, res: any, next: any) {
                 .then((results: any) => {
                     if (!results) return res.redirect('/login');
                     next();
-                }).catch((err: any) => {
-                    logging.log.error(err);
+                }).catch(() => {
                     return res.redirect('/login');
                 });
-        }).catch((err: any) => {
-            logging.log.error(err);
+        }).catch(() => {
             res.redirect('/login');
         });
 });
@@ -320,6 +325,48 @@ app.get('/api/fileusage', (req: any, res: any) => {
             used: (stats.blocks - stats.bfree) * stats.bsize,
         };
         res.status(200).send(data);
+    });
+});
+
+app.post('/api/create-account', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    const authentication = require('./utils/authentication');
+    const body = req.body;
+    if (!body.email) return res.redirect(path.join(__dirname, 'cpanel/settings.html'));
+    // Check access
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            // Check if account already exists by email
+            db.query('SELECT email FROM accounts WHERE email = ?', [body.email])
+            .then((results: any) => {
+                if (results.length === 0) {
+                    const password = cryptojs.randomBytes(8).toString('hex');
+                    db.query('INSERT INTO accounts (email, password, passwordreset) VALUES (?, ?, ?)', [body.email, hash(password), '1'])
+                    .then(() => {
+                        logging.log.info(`[CREATE ACCOUNT] ${body.email}`);
+                        email.send(body.email, 'Account Created',
+                        `Your account has been created. Your temporary password is ${password}. Please login to your account ${req.protocol}://${req.headers.host}/login and change your password.`);
+                        res.redirect('/cpanel/settings.html');
+                    }).catch((err: any) => {
+                        logging.log.error(err);
+                        res.status(500).send('Internal Server Error');
+                    });
+                } else {
+                    logging.log.error(`[CREATE ACCOUNT] ${body.email} already exists`);
+                    res.redirect('/cpanel/settings.html');
+                }
+            }).catch((err: any) => {
+                logging.log.error(err);
+                res.status(500).send('Internal Server Error');
+            });
+        } else {
+            logging.log.error(`[CREATE ACCOUNT] ${req.cookies.email} does not have access`);
+            res.redirect('/cpanel/settings.html');
+        }
+    }).catch((err: any) => {
+        logging.log.error(err);
+        res.redirect('/cpanel/settings.html');
     });
 });
 

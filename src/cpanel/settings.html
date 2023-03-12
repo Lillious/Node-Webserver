@@ -20,6 +20,7 @@
         </div>
         <div id="card">
             <input type="button" id="logout" value="Logout"/>
+            <input type="button" id="cpanel" value="Cpanel"/>
             <input type="button" id="settings" value="Settings"/>
         </div>
         <div id="info-panel">
@@ -28,6 +29,12 @@
                 <button type="submit" id="reset-password-button">Reset</button>
             </form>
             <hr>
+            <h1 id="create-account">Create Account</h1>
+            <form action="/api/create-account" method="post">
+                <input type="email" name="email" id="email" placeholder="example@domain.com" required autocomplete="off" spellcheck="false">
+                <br><br>
+                <button type="submit" id="create-account-button">Create</button>
+            </form>
         </div>
     </body>
 </html>
