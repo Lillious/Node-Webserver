@@ -1,23 +1,24 @@
 const nodemailer = require('nodemailer');
 const logging = require('../utils/logging');
+require('dotenv').config();
 
 // Email setup
 const transporter = nodemailer.createTransport({
-    host: '',
-    port: 465,
-    secure: true,
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: process.env.EMAIL_SECURE,
     auth: {
-        user: '',
-        pass: ''
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
     }
 });
 
-export const send = (email: string, code: string) => {
+export const send = (email: string, subject: string, message: string) => {
     const mailOptions = {
-        from: '',
+        from: process.env.EMAIL_USER,
         to: email,
-        subject: 'Verification Code',
-        text: `Your verification code is: ${code}`
+        subject: `${subject}`,
+        text: `${message}`
     };
     transporter.sendMail(mailOptions, function(error: any, info: any) {
         if (error) {
