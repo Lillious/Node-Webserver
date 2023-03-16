@@ -208,37 +208,6 @@ app.post('/2fa', (req: any, res: any) => {
         });
 });
 
-app.post('/2fa/resend', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
-    createSession(req, res, req.cookies.email);
-});
-
-app.post('/api/reset-password', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
-    const body = req.body;
-    if (!body.temppassword || !body.password1 || !body.password2) return res.sendFile(path.join(__dirname, 'login/passwordreset.html'));
-    if (body.password1 !== body.password2) return res.sendFile(path.join(__dirname, 'login/passwordreset.html'));
-    db.query('SELECT passwordreset FROM accounts WHERE email = ? AND password = ?', [req.cookies.email, hash(body.temppassword)])
-        .then((results: any) => {
-            if (results[0].passwordreset === '1') {
-                db.query('UPDATE accounts SET password = ?, passwordreset = ? WHERE email = ?', [hash(body.password1), '0', req.cookies.email])
-                    .then(() => {
-                        logging.log.info(`[PASSWORD RESET] ${req.cookies.email}`);
-                        createSession(req, res);
-                }).catch((err: any) => {
-                    logging.log.error(err);
-                    res.status(500).send('Internal Server Error');
-                });
-            } else {
-                res.redirect('/login');
-            }
-        }
-    ).catch((err: any) => {
-        logging.log.error(err);
-        res.status(500).send('Internal Server Error');
-    });
-});
-
 /* Start Secure Routing */
 /* Routes that require authentication */
 
@@ -372,6 +341,11 @@ app.post('/api/create-account', (req: any, res: any) => {
     });
 });
 
+app.post('/2fa/resend', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    createSession(req, res, req.cookies.email);
+});
+
 app.post('/reset-password', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
@@ -384,6 +358,32 @@ app.post('/reset-password', (req: any, res: any) => {
     }).catch((err: any) => {
         logging.log.error(err);
         res.redirect('/login');
+    });
+});
+
+app.post('/api/reset-password', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=31557600');    
+    const body = req.body;
+    if (!body.temppassword || !body.password1 || !body.password2) return res.sendFile(path.join(__dirname, 'login/passwordreset.html'));
+    if (body.password1 !== body.password2) return res.sendFile(path.join(__dirname, 'login/passwordreset.html'));
+    db.query('SELECT passwordreset FROM accounts WHERE email = ? AND password = ?', [req.cookies.email, hash(body.temppassword)])
+        .then((results: any) => {
+            if (results[0].passwordreset === '1') {
+                db.query('UPDATE accounts SET password = ?, passwordreset = ? WHERE email = ?', [hash(body.password1), '0', req.cookies.email])
+                    .then(() => {
+                        logging.log.info(`[PASSWORD RESET] ${req.cookies.email}`);
+                        createSession(req, res);
+                }).catch((err: any) => {
+                    logging.log.error(err);
+                    res.status(500).send('Internal Server Error');
+                });
+            } else {
+                res.redirect('/login');
+            }
+        }
+    ).catch((err: any) => {
+        logging.log.error(err);
+        res.status(500).send('Internal Server Error');
     });
 });
 
@@ -439,25 +439,32 @@ function shuffle(str: string, length: number) {
 }
 
 function createSession (req: any, res: any, _email?: string) {
-    _email = req.cookies.email || _email;
-    db.query('DELETE FROM sessions WHERE email = ?', [req.cookies.email]).then(() => {
-        const session = cryptojs.randomBytes(64).toString('hex');
-        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        const code = shuffle(session, 6);
-        db.query('INSERT INTO sessions (session, email, ip, code) VALUES (?, ?, ?, ?)', [session, _email, ip, code])
-            .then(() => {
-                res.cookie('session', session, {
-                    maxAge: 86400000,
-                    httpOnly: true
+    _email = _email || req.cookies.email;
+    // Check if an account exists with the email
+    db.query('SELECT email FROM accounts WHERE email = ?', [_email]).then((results: any) => {
+        if (results.length === 0) return res.redirect('/login');
+            // Delete any existing sessions
+        db.query('DELETE FROM sessions WHERE email = ?', [req.cookies.email]).then(() => {
+            const session = cryptojs.randomBytes(64).toString('hex');
+            const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+            const code = shuffle(session, 6);
+            db.query('INSERT INTO sessions (session, email, ip, code) VALUES (?, ?, ?, ?)', [session, _email, ip, code])
+                .then(() => {
+                    res.cookie('session', session, {
+                        maxAge: 86400000,
+                        httpOnly: true
+                    });
+                    logging.log.info(`[LOGIN] ${_email}`);
+                    email.send(_email, 'Verification Code', `Your verification code is: ${code}`);
+                    res.sendFile(path.join(__dirname, 'login/2fa.html'));
+                }).catch((err: any) => {
+                    logging.log.error(err);
                 });
-                logging.log.info(`[LOGIN] ${_email}`);
-                email.send(_email, 'Verification Code', `Your verification code is: ${code}`);
-                res.sendFile(path.join(__dirname, 'login/2fa.html'));
-            }).catch((err: any) => {
-                logging.log.error(err);
-            });
+        }).catch((err: any) => {
+            logging.log.error(err);
+            res.status(500).send('Internal Server Error');
+        });
     }).catch((err: any) => {
         logging.log.error(err);
-        res.status(500).send('Internal Server Error');
-    });
+    }); 
 }
