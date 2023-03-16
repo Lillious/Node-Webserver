@@ -443,8 +443,9 @@ function createSession (req: any, res: any, _email?: string) {
     // Check if an account exists with the email
     db.query('SELECT email FROM accounts WHERE email = ?', [_email]).then((results: any) => {
         if (results.length === 0) return res.redirect('/login');
+        logging.log.info(`[2FA RESEND] ${_email}`);
             // Delete any existing sessions
-        db.query('DELETE FROM sessions WHERE email = ?', [req.cookies.email]).then(() => {
+        db.query('DELETE FROM sessions WHERE email = ?', [_email]).then(() => {
             const session = cryptojs.randomBytes(64).toString('hex');
             const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
             const code = shuffle(session, 6);

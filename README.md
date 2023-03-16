@@ -9,9 +9,7 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Request/File Caching
 - Express file compression
 - Blazingly fast and lightweight
-- Bun runtime compatible
-- Code linting
-- Typescript
+- Bun runtime compatibility
 - Secure Database Connection Utility
 - Database Connection Pooling
 - Database Query Builder
@@ -48,6 +46,7 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 
 # Planned Security Feature
 - Anti-Proxy
+- Timed session control (server time)
 
 # Planned Plugins
 - Captcha
