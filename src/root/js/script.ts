@@ -6,6 +6,7 @@
             headers: {
                 'Content-Type': 'application/json',
             },
+            cache: 'no-cache',
         })
         .then((res: any) => {
             if (res.status === 200) {
@@ -18,17 +19,28 @@
     }
 
     const maintenance = document.getElementById('banner');
-    if (maintenance) {
+    const maintenanceButton = document.getElementById('toggle-maintenance-button');
+    const maintenanceMode = document.getElementById('maintenance-mode');
+    const maintenanceModeText = document.getElementById('toggle-maintenance');
+    if (maintenance || maintenanceModeText) {
         fetch('/maintenance', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             },
+            cache: 'no-cache',
         })
         .then((res: any) => {
             if (res.status === 200) {
-                maintenance.style.display = 'flex';
-                maintenance.innerHTML = 'Website is currently under maintenance. Performace may be affected.';
+                if (maintenance) maintenance.style.display = 'flex';
+                if (maintenance) maintenance.innerHTML = 'Website is currently under maintenance. Performace may be affected.';
+                if (maintenanceButton) maintenanceButton.textContent = 'Disable';
+                if (maintenanceModeText) maintenanceModeText.innerHTML = 'Maintenance Mode: Enabled';
+                if (maintenanceMode) (<HTMLInputElement>maintenanceMode as HTMLInputElement).value = 'false';
+            } else {
+                if (maintenanceButton) maintenanceButton.textContent = 'Enable';
+                if (maintenanceModeText) maintenanceModeText.innerHTML = 'Maintenance Mode: Disabled';
+                if (maintenanceMode) (<HTMLInputElement>maintenanceMode as HTMLInputElement).value = 'true';
             }
         })
         .catch((err: any) => {

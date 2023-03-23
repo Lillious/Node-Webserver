@@ -9,6 +9,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                cache: 'no-cache',
             })
             .then((res: any) => {
                 if (res.status === 200) {
@@ -34,6 +35,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                cache: 'no-cache',
             })
             .then((res: any) => {
                 if (res.status === 200) {

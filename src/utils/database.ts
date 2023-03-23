@@ -7,9 +7,11 @@ const pool = mysql.createPool({
     user: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_NAME,
+    /* Remove if not using SSL */
     ssl: {
         ca: fs.readFileSync(__dirname + '/ca-certificate.crt')
     }
+    /* Remove if not using SSL */
 });
 
 export const query = (sql: string, values: any) => {
