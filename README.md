@@ -17,7 +17,10 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Plugin System
 - Security System
 - Account Creation
+- Account Registration
+- Web Server Settings
 - Sample Database
+- Maintenance Mode Banner
 
 # Security Features
 - CORS
