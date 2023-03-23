@@ -49,6 +49,9 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 
 # Planned Security Feature
 - Timed session control (server time)
+- Account Locking
+- Account Banning
+- Account Unlock (2fa)
 
 # Planned Plugins
 - Captcha
