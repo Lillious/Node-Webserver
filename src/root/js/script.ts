@@ -1,4 +1,41 @@
 (function() {
+    const register = document.getElementById('register');
+    if (register) {
+        fetch('/register', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then((res: any) => {
+            if (res.status === 200) {
+                register.style.display = 'block';
+            }
+        })
+        .catch((err: any) => {
+            console.error(err);
+        });
+    }
+
+    const maintenance = document.getElementById('banner');
+    if (maintenance) {
+        fetch('/maintenance', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then((res: any) => {
+            if (res.status === 200) {
+                maintenance.style.display = 'flex';
+                maintenance.innerHTML = 'Website is currently under maintenance. Performace may be affected.';
+            }
+        })
+        .catch((err: any) => {
+            console.error(err);
+        });
+    }
+
     const logout = document.getElementById('logout');
     if (logout) {
         logout.addEventListener('click', () => {

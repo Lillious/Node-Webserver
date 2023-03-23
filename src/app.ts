@@ -14,6 +14,7 @@ const hpp = require('hpp');
 const logging = require('./utils/logging');
 const email = require('./utils/mailer');
 const db = require('./utils/database');
+const settings = require('./settings.json');
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -122,6 +123,12 @@ if (cluster.isPrimary) {
     });
 }
 
+// Email validation
+function validateEmail(email: string) {
+    const re = /\S+%40\S+\.\S+/;
+    return re.test(email);
+}
+
 // Check if the url has repeating slashes at the end of the domain
 app.use(function(req: any, res: any, next: any) {
     let url = req.url;
@@ -138,10 +145,36 @@ app.use(function(req: any, res: any, next: any) {
 /* Start Unsecure Routing */
 /* Routes that do not require authentication */
 
+// Check if the user is already logged in
+app.use(function(req: any, res: any, next: any) {
+    if (!req.cookies.session && !req.cookies.email) return next();
+    // Check if request url is /login or /register
+    if (req.url === '/login/' || req.url === '/register/') {
+    // Check if the session is valid
+    db.query('SELECT * FROM sessions WHERE session = ? AND email = ?', [req.cookies.session, req.cookies.email])
+        .then((result: any) => {
+            if (result.length > 0) return res.redirect('/cpanel');
+        })
+        .catch((err: any) => {
+            logging.log.error(`Failed to check if the session is valid\n${err}`);
+            return next();
+        });
+    } else {
+        return next();
+    }
+});
+
 // Login Page
 app.use('/login', express.static(path.join(__dirname, '/login'), {
     maxAge: 31557600
 }));
+
+// Register Page
+if (settings.registration) {
+    app.use('/register', express.static(path.join(__dirname, '/register'), {
+        maxAge: 31557600
+    }));
+}
 
 // Home Page
 app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), {
@@ -160,6 +193,7 @@ app.post('/login', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     const body = req.body;
     if (body.email && body.password) {
+        if (!validateEmail(body.email)) return res.redirect('/login');
         res.cookie('email', body.email, {
             maxAge: 86400000,
             httpOnly: true
@@ -188,11 +222,64 @@ app.post('/login', (req: any, res: any) => {
     }
 });
 
+// Check if registration is enabled
+app.get('/register', (req: any, res: any) => {
+   if (settings.registration) {
+        res.status(200);
+   } else {
+        res.status(404);
+    } 
+});
+
+// Check if maintenance mode is enabled
+app.get('/maintenance', (req: any, res: any) => {
+    if (settings.maintenance) {
+        res.status(200).send("Maintenance Mode: Enabled");
+    } else {
+        res.status(404);
+    }
+});
+
+// Register Post Request
+app.post('/register', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    const body = req.body;
+    if (body.email && body.password && body.password2) {
+    // Check if the passwords match
+        if (body.password !== body.password2) return res.redirect('/register');
+    }
+    // Check if the email is valid
+    if (!validateEmail(body.email)) return res.redirect('/register');
+    // Check if the email is already in use
+    db.query('SELECT * FROM accounts WHERE email = ?', [body.email.toLowerCase()])
+        .then((results: any) => {
+            if (results.length > 0) return res.redirect('/register');
+        }).catch((err: any) => {
+            logging.log.error(err);
+        });
+
+    // Create the account and send the user to the 2fa page
+    db.query('INSERT INTO accounts (email, password, lastlogin) VALUES (?, ?, ?)', [body.email.toLowerCase(), hash(body.password), new Date()])
+        .then(() => {
+            res.cookie('email', body.email.toLowerCase(), {
+                maxAge: 86400000,
+                httpOnly: true
+            });
+            createSession(req, res, body.email.toLowerCase());
+        }).catch((err: any) => {
+            logging.log.error(err);
+            res.redirect('/register');
+        });
+});
+
 app.post('/2fa', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     const body = req.body;
     const authentication = require('./utils/authentication');
+    // Verify session and email cookies exist
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
+    // Check if the email is valid
+    if (validateEmail(req.cookies.email)) return res.redirect('/login');
     authentication.checkCode(req.cookies.email, body.code)
         .then((results: any) => {
             if (!results) return res.redirect('/login');
@@ -214,7 +301,10 @@ app.post('/2fa', (req: any, res: any) => {
 app.use(function(req: any, res: any, next: any) {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     const authentication = require('./utils/authentication');
-    if (!req.cookies.session) return res.redirect('/login');
+    // Verify session and email cookies exist
+    if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
+    // Check if the email is valid
+    if (validateEmail(req.cookies.email)) return res.redirect('/login');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     // get request url
     authentication.checkSession(req.cookies.session, ip)
@@ -234,21 +324,17 @@ app.use(function(req: any, res: any, next: any) {
 
 app.post('/logout', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
-    if (req.cookies.session) {
-        db.query('DELETE FROM sessions WHERE session = ?', [req.cookies.session])
-            .then(() => {
-                logging.log.error(`[LOGOUT] ${req.cookies.email}`);
-                res.clearCookie('session');
-                res.clearCookie('email');
-                res.redirect('/login');
-            })
-            .catch((err: any) => {
-                logging.log.error(err);
-                res.redirect('/login');
-            });
-    } else {
-        res.redirect('/login');
-    }
+    db.query('DELETE FROM sessions WHERE session = ?', [req.cookies.session])
+        .then(() => {
+            logging.log.error(`[LOGOUT] ${req.cookies.email}`);
+            res.clearCookie('session');
+            res.clearCookie('email');
+            res.redirect('/login');
+        })
+        .catch((err: any) => {
+            logging.log.error(err);
+            res.redirect('/login');
+        });
 });
 
 app.use('/cpanel', express.static(path.join(__dirname, '/cpanel')));
