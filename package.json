@@ -5,7 +5,7 @@
   "main": "dist/src/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm run build && node dist/src/app.js",
+    "start": "npm update && npm fund && npm run build && node dist/src/app.js",
     "clean": "rimraf dist/",
     "build": "npm run clean && npm run lint && tsc && npm run copy-files && npm run minify",
     "copy-files": "npm run copy-web && npm run copy-media && npm run copy-images && npm run copy-certificates && npm run copy-misc",
@@ -39,14 +39,12 @@
     "path": "^0.12.7",
     "typescript": "^4.9.5",
     "uglify-js": "^3.17.4",
-    "vhost": "^3.0.2"
-  },
-  "devDependencies": {
+    "vhost": "^3.0.2",
+    "rimraf": "^4.1.2",
     "@types/node": "^18.14.1",
     "@typescript-eslint/eslint-plugin": "^5.54.0",
     "@typescript-eslint/parser": "^5.54.0",
     "copyfiles": "^2.4.1",
-    "eslint": "^8.35.0",
-    "rimraf": "^4.1.2"
+    "eslint": "^8.35.0"
   }
 }

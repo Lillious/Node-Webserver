@@ -178,6 +178,7 @@ a:hover {
 }
 
 #profile {
+    margin-top: 30px;
     float: right;
     background-color: transparent;
     border-radius: 20px;
@@ -202,7 +203,7 @@ a:hover {
 #card {
     position: absolute;
     right: 25px;
-    top: 65px;
+    top: 100px;
     width: 175px;
     height: 200px;
     border-radius: 5px;
@@ -242,15 +243,12 @@ a:hover {
     font-weight: 400;
     transition: 0.2s;
     border: none;
+    border-bottom: 1px solid #474747;
 }
 
 #card input:hover {
     background: #313131;
     transition: 0.2s;
-}
-
-#card #logout {
-    border-top: 1px solid #474747;
 }
 
 #info-panel {
@@ -347,6 +345,7 @@ a:hover {
     background: #1ed760;
     color: #000;
     font-weight: bold;
+    font-size: .6rem;
     z-index: 1000;
     align-items: center;
     justify-content: center;

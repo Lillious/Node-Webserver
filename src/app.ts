@@ -14,7 +14,7 @@ const hpp = require('hpp');
 const logging = require('./utils/logging');
 const email = require('./utils/mailer');
 const db = require('./utils/database');
-const settings = require('./settings.json');
+const fs = require('node:fs');
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -148,16 +148,15 @@ app.use(function(req: any, res: any, next: any) {
 /* Routes that do not require authentication */
 
 // Login Page
-app.use('/login', express.static(path.join(__dirname, '/login'), {
-    maxAge: 31557600
-}));
+app.use('/login', express.static(path.join(__dirname, '/login')));
 
 // Register Page
-if (settings.registration) {
-    app.use('/register', express.static(path.join(__dirname, '/register'), {
-        maxAge: 31557600
-    }));
-}
+(function() {
+    const settings = require('./settings.json');
+    if (settings.registration) {
+        app.use('/register', express.static(path.join(__dirname, '/register')));
+    }
+})();
 
 // Home Page
 app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), {
@@ -207,24 +206,28 @@ app.post('/login', (req: any, res: any) => {
 
 // Check if registration is enabled
 app.get('/register', (req: any, res: any) => {
-   if (settings.registration) {
+    const settings = require('./settings.json');
+    if (settings.registration) {
         res.status(200);
-   } else {
+    } else {
         res.status(404);
     } 
 });
 
 // Check if maintenance mode is enabled
 app.get('/maintenance', (req: any, res: any) => {
+    const settings = require('./settings.json');
     if (settings.maintenance) {
         res.status(200).send("Maintenance Mode: Enabled");
     } else {
-        res.status(404);
+        res.status(404).send("Maintenance Mode: Disabled");
     }
 });
 
 // Register Post Request
 app.post('/register', (req: any, res: any) => {
+    const settings = require('./settings.json');
+    if (!settings.registration) return res.redirect('/login');
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     const body = req.body;
     if (body.email && body.password && body.password2) {
@@ -305,6 +308,35 @@ app.use(function(req: any, res: any, next: any) {
         });
 });
 
+
+// Enable maintenance mode
+app.post('/api/toggle-maintenance', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    const authentication = require('./utils/authentication');
+    const body = req.body;
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const settings = require('./settings.json');
+            if (body.maintenance == 'true') {
+                settings.maintenance = true;
+                fs.writeFileSync(path.join(__dirname, 'settings.json'), JSON.stringify(settings, null, 4));
+                logging.log.warn('[Maintenance Mode] - Enabled');
+                res.redirect('back');
+            } else {
+                settings.maintenance = false;
+                fs.writeFileSync(path.join(__dirname, 'settings.json'), JSON.stringify(settings, null, 4));
+                logging.log.warn('[Maintenance Mode] - Disabled');
+                res.redirect('back');
+            }
+        } else {
+            res.redirect('/cpanel');
+        }
+    }).catch((err: any) => {
+        logging.log.error(err);
+    });
+});
+
 app.post('/logout', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     db.query('DELETE FROM sessions WHERE session = ?', [req.cookies.session])
@@ -372,7 +404,7 @@ app.post('/api/create-account', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     const authentication = require('./utils/authentication');
     const body = req.body;
-    if (!body.email) return res.redirect(path.join(__dirname, 'cpanel/settings.html'));
+    if (!body.email) return res.redirect(path.join(__dirname, 'back'));
     // Check access
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
@@ -387,14 +419,14 @@ app.post('/api/create-account', (req: any, res: any) => {
                         logging.log.info(`[CREATE ACCOUNT] ${body.email}`);
                         email.send(body.email, 'Account Created',
                         `Your account has been created. Your temporary password is ${password}. Please login to your account ${req.protocol}://${req.headers.host}/login and change your password.`);
-                        res.redirect('/cpanel/settings.html');
+                        res.redirect('back');
                     }).catch((err: any) => {
                         logging.log.error(err);
                         res.status(500).send('Internal Server Error');
                     });
                 } else {
                     logging.log.error(`[CREATE ACCOUNT] ${body.email} already exists`);
-                    res.redirect('/cpanel/settings.html');
+                    res.redirect('back');
                 }
             }).catch((err: any) => {
                 logging.log.error(err);
@@ -402,11 +434,11 @@ app.post('/api/create-account', (req: any, res: any) => {
             });
         } else {
             logging.log.error(`[CREATE ACCOUNT] ${req.cookies.email} does not have access`);
-            res.redirect('/cpanel/settings.html');
+            res.redirect('back');
         }
     }).catch((err: any) => {
         logging.log.error(err);
-        res.redirect('/cpanel/settings.html');
+        res.redirect('back');
     });
 });
 

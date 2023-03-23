@@ -12,7 +12,7 @@
         <script defer async src="../js/script.js"></script>
     </head>
     <body tabindex="-1">
-        <h1 id="title">Account Settings</h1>
+        <div id="banner"></div>
         <div id="profile">
             <p id="display_name"></p>
             <p id="arrow">&#x25BC;</p>
@@ -25,14 +25,22 @@
         <div id="info-panel">
             <h1 id="reset-password">Reset Password</h1>
             <form action="/reset-password" method="post">
+                <br>
                 <button type="submit" id="reset-password-button">Reset</button>
             </form>
             <hr>
             <h1 id="create-account">Create Account</h1>
             <form action="/api/create-account" method="post">
                 <input type="email" name="email" id="email" placeholder="example@domain.com" required autocomplete="off" spellcheck="false">
-                <br><br>
+                <br><br><br>
                 <button type="submit" id="create-account-button">Create</button>
+            </form>
+            <hr>
+            <h1 id="toggle-maintenance"></h1>
+            <form action="/api/toggle-maintenance" method="post">
+                <input hidden type="text" name="maintenance" id="maintenance-mode">
+                <br>
+                <button type="submit" id="toggle-maintenance-button"></button>
             </form>
         </div>
     </body>
