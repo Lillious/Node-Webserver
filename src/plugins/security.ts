@@ -32,6 +32,9 @@ const paths = [
     'get_targets',
     'upl.php',
     'phpmyadmin',
+    'phpstorm',
+    'bablosoft',
+    'console'
 ]
 server.app.use(function(req: any, res: any, next: any) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
