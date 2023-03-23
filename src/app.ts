@@ -225,6 +225,7 @@ app.get('/maintenance', (req: any, res: any) => {
 
 // Register Post Request
 app.post('/register', (req: any, res: any) => {
+    if (!settings.registration) return res.redirect('/login');
     res.setHeader('Cache-Control', 'public, max-age=31557600');
     const body = req.body;
     if (body.email && body.password && body.password2) {
