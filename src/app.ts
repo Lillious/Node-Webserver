@@ -51,7 +51,7 @@ app.use(session({
     cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         path: '/',
-        domain: '.lillious.com'
+        domain: '.lillious.com' // Update this to your domain
     },
     resave: true,
     saveUninitialized: true
@@ -65,7 +65,7 @@ app.set('subdomain offset', 1);
 // Rate Limiting Setup
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+    max: 200, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
@@ -125,8 +125,10 @@ if (cluster.isPrimary) {
 
 // Email validation
 function validateEmail(email: string) {
-    const re = /\S+%40\S+\.\S+/;
-    return re.test(email);
+    const re = /\S+@\S+\.\S+/;
+    const re2 = /\S+%40\S+\.\S+/;
+    if (re.test(email) || re2.test(email)) return true;
+    return false;
 }
 
 // Check if the url has repeating slashes at the end of the domain
@@ -144,25 +146,6 @@ app.use(function(req: any, res: any, next: any) {
 
 /* Start Unsecure Routing */
 /* Routes that do not require authentication */
-
-// Check if the user is already logged in
-app.use(function(req: any, res: any, next: any) {
-    if (!req.cookies.session && !req.cookies.email) return next();
-    // Check if request url is /login or /register
-    if (req.url === '/login/' || req.url === '/register/') {
-    // Check if the session is valid
-    db.query('SELECT * FROM sessions WHERE session = ? AND email = ?', [req.cookies.session, req.cookies.email])
-        .then((result: any) => {
-            if (result.length > 0) return res.redirect('/cpanel');
-        })
-        .catch((err: any) => {
-            logging.log.error(`Failed to check if the session is valid\n${err}`);
-            return next();
-        });
-    } else {
-        return next();
-    }
-});
 
 // Login Page
 app.use('/login', express.static(path.join(__dirname, '/login'), {
@@ -279,7 +262,7 @@ app.post('/2fa', (req: any, res: any) => {
     // Verify session and email cookies exist
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
     // Check if the email is valid
-    if (validateEmail(req.cookies.email)) return res.redirect('/login');
+    if (!validateEmail(req.cookies.email)) return res.redirect('/login');
     authentication.checkCode(req.cookies.email, body.code)
         .then((results: any) => {
             if (!results) return res.redirect('/login');
@@ -304,7 +287,7 @@ app.use(function(req: any, res: any, next: any) {
     // Verify session and email cookies exist
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
     // Check if the email is valid
-    if (validateEmail(req.cookies.email)) return res.redirect('/login');
+    if (!validateEmail(req.cookies.email)) return res.redirect('/login');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     // get request url
     authentication.checkSession(req.cookies.session, ip)
@@ -529,7 +512,7 @@ function createSession (req: any, res: any, _email?: string) {
     // Check if an account exists with the email
     db.query('SELECT email FROM accounts WHERE email = ?', [_email]).then((results: any) => {
         if (results.length === 0) return res.redirect('/login');
-        logging.log.info(`[2FA RESEND] ${_email}`);
+        logging.log.info(`[2FA SEND] ${_email}`);
             // Delete any existing sessions
         db.query('DELETE FROM sessions WHERE email = ?', [_email]).then(() => {
             const session = cryptojs.randomBytes(64).toString('hex');
