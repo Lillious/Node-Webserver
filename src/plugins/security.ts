@@ -36,6 +36,7 @@ const paths = [
     'bablosoft',
     'console',
     'Autodiscover.xml',
+    'execute-solution'
 ]
 server.app.use(function(req: any, res: any, next: any) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
