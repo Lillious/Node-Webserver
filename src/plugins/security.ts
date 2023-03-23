@@ -34,7 +34,8 @@ const paths = [
     'phpmyadmin',
     'phpstorm',
     'bablosoft',
-    'console'
+    'console',
+    'Autodiscover.xml',
 ]
 server.app.use(function(req: any, res: any, next: any) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
