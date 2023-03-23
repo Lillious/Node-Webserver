@@ -16,7 +16,7 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Password Hashing & Salting
 - Plugin System
 - Security System
-- Account Creation
+- Login System
 - Account Registration
 - Web Server Settings
 - Sample Database
@@ -48,7 +48,6 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 # Planned Features
 
 # Planned Security Feature
-- Anti-Proxy
 - Timed session control (server time)
 
 # Planned Plugins
@@ -128,3 +127,16 @@ email.send(_email, _2FACode);
 # Importing the sample SQL database
 Location: "src/utils/sample database/cpanel.sql"
 Replace UPDATE_TO_YOUR_EMAIL_ADDRESS with your email address for the system admin account
+
+# Enable Maintainence Mode
+During Current Session
+- Located in cpanel settings
+
+At Startup
+- Located in settings.json at root
+
+# Enable Registration System
+- Located in settings.json at root
+
+# Plugin Settings
+- Located in plugins.json at root
