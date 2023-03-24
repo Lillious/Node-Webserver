@@ -10,7 +10,7 @@
     "build": "npm run clean && npm run lint && tsc && npm run copy-files && npm run minify",
     "copy-files": "npm run copy-web && npm run copy-media && npm run copy-images && npm run copy-certificates && npm run copy-misc",
     "copy-web": "copyfiles -u 1 ./src/**/*.html ./src/**/*.css ./src/**/*.sass ./dist/src/",
-    "copy-misc": "copyfiles -u 1 ./src/**/*.txt ./src/**/*.json ./dist/src/",
+    "copy-misc": "copyfiles -u 1 ./src/**/*.txt ./src/**/*.json ./src/*.json ./dist/src/",
     "copy-media": "copyfiles -u 1 ./src/**/*.mp3 ./src/**/*.mp4 ./src/**/*.wav ./src/**/*.mov ./src/**/*.ogg ./src/**/*.avi ./dist/src/",
     "copy-images": "copyfiles -u 1 ./src/**/*.png ./src/**/*.ico ./src/**/*.jpg ./src/**/*.jpeg ./src/**/*.gif ./src/**/*.apng ./src/**/*.pdf ./src/**/*.raw ./dist/src/",
     "copy-certificates": "copyfiles -u 1 ./src/**/*.pem ./src/**/*.key ./src/**/*.crt ./dist/src/",
