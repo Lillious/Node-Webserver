@@ -37,7 +37,7 @@ CREATE TABLE `accounts` (
   `email` varchar(255) NOT NULL,
   `password` varchar(1000) NOT NULL,
   `access` int NOT NULL DEFAULT '0',
-  `lastlogin` varchar(100) DEFAULT NULL,
+  `lastlogin` datetime DEFAULT NULL,
   `passwordreset` varchar(45) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
@@ -67,7 +67,9 @@ CREATE TABLE `sessions` (
   `session` varchar(1000) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
   `ip` varchar(100) NOT NULL,
-  `code` varchar(6) NOT NULL DEFAULT '0'
+  `code` varchar(6) NOT NULL DEFAULT '0',
+  `created` datetime DEFAULT NULL,
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

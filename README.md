@@ -41,6 +41,8 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Email based 2FA /w resend option
 - Email based password Reset
 - Permission System
+- Login Session Expiration
+- Job Scheduler System
 
 # Experimental Features
 - Control Panel (WIP)
