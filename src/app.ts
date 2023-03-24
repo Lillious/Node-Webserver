@@ -77,6 +77,21 @@ const port = '80';
 app.set('port', port);
 const server = http.createServer(app);
 
+// Import Jobs
+if (cluster.isPrimary) {
+    fs.readdirSync(path.join(__dirname, 'jobs')).forEach((file: any) => {
+        if (file.substr(-3) === '.js') {
+            // Load the job
+            logging.log.info(`Loading Job: ${file}`);
+            try {
+                require(`./jobs/${file}`);
+            } catch (err: any) {
+                logging.log.error(`Failed to load job: ${file}\n${err}`);
+            }
+        }
+    });
+}
+
 // Cluster Setup
 if (cluster.isPrimary) {
     // Test Database Connection
@@ -550,7 +565,7 @@ function createSession (req: any, res: any, _email?: string) {
             const session = cryptojs.randomBytes(64).toString('hex');
             const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
             const code = shuffle(session, 6);
-            db.query('INSERT INTO sessions (session, email, ip, code) VALUES (?, ?, ?, ?)', [session, _email, ip, code])
+            db.query('INSERT INTO sessions (session, email, ip, code, created) VALUES (?, ?, ?, ?, ?)', [session, _email, ip, code, new Date()])
                 .then(() => {
                     res.cookie('session', session, {
                         maxAge: 86400000,

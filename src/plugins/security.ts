@@ -16,8 +16,6 @@ const paths = [
     'view-source',
     'wlwmanifest.xml',
     'credentials',
-    'phpinfo',
-    'test.php',
     '.aws',
     'wp-config.php',
     'wp-admin',
@@ -25,21 +23,13 @@ const paths = [
     'wget',
     'curl',
     'showLogin.cc',
-    'phpunit.xml',
-    'phpunit.xml.dist',
-    'phpstorm',
-    'mlrpc.php',
     'get_targets',
-    'upl.php',
-    'phpmyadmin',
-    'phpstorm',
     'bablosoft',
     'console',
     'Autodiscover.xml',
     'execute-solution',
     'mt-xmlrpc.cgi',
-    'xmlrpc.php',
-    'RxR.php'
+    'php'
 ]
 server.app.use(function(req: any, res: any, next: any) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
