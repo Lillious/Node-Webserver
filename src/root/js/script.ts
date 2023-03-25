@@ -90,6 +90,13 @@
         });
     }
 
+    const home = document.getElementById('home');
+    if (home) {
+        home.addEventListener('click', () => {
+            window.location.href = '/';
+        });
+    }
+
     const profile = document.getElementById('profile');
     const card = document.getElementById('card');
     const arrow = document.getElementById('arrow');
