@@ -41,23 +41,14 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Email based 2FA /w resend option
 - Email based password Reset
 - Permission System
-- Login Session Expiration
 - Job Scheduler System
+
+# Scheduled Jobs
+- Backups (1 hour interval)
+- Clear Expired Login Sessions
 
 # Experimental Features
 - Control Panel (WIP)
-
-# Planned Features
-
-# Planned Security Feature
-- Account Locking
-- Account Banning
-- Account Unlock (2fa)
-
-# Planned Plugins
-- Captcha
-- Backups
-- Analytics
 
 # Steps to install, build and run
 - Install
