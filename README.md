@@ -119,6 +119,19 @@ const email = require('./utils/mailer');
 email.send(_email, _2FACode);
 ```
 
+# Creating a scheduled job
+Location: "src/jobs/jobs.ts"
+```js
+    myFirstJob: {
+        name: string,
+        enabled: boolean,
+        interval: number.
+        start() {
+            // Code to execute
+        }
+    }
+```
+
 # Importing the sample SQL database
 Location: "src/utils/sample database/cpanel.sql"
 Replace UPDATE_TO_YOUR_EMAIL_ADDRESS with your email address for the system admin account
