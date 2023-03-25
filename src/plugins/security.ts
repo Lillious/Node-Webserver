@@ -34,6 +34,7 @@ const paths = [
 server.app.use(function(req: any, res: any, next: any) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-access-token');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const found = paths.some(element => {
         if (req.url.includes(element)) {
             // Get the IP address of the request
