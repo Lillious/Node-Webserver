@@ -153,7 +153,9 @@ app.use(function(req: any, res: any, next: any) {
 /* Routes that do not require authentication */
 
 // Login Page
-app.use('/login', express.static(path.join(__dirname, '/login')));
+app.use('/login', express.static(path.join(__dirname, '/login'), {
+    maxAge: 2.88e+7
+}));
 
 // Register Page
 (function() {
@@ -165,19 +167,19 @@ app.use('/login', express.static(path.join(__dirname, '/login')));
 
 // Home Page
 app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), {
-    maxAge: 31557600
+    maxAge: 2.88e+7
 })));
 
 // Localhost
 app.use(vhost('localhost', express.static(path.join(__dirname, '/root'), {
-    maxAge: 31557600
+    maxAge: 2.88e+7
 })));
 
 // Login Post Request
 app.post('/login', (req: any, res: any) => {
     res.clearCookie('session');
     res.clearCookie('email');
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const body = req.body;
     if (body.email && body.password) {
         if (!validateEmail(body.email)) return res.redirect('/login');
@@ -233,7 +235,7 @@ app.get('/maintenance', (req: any, res: any) => {
 app.post('/register', (req: any, res: any) => {
     const settings = require('./settings.json');
     if (!settings.registration) return res.redirect('/login');
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const body = req.body;
     if (body.email && body.password && body.password2) {
     // Check if the passwords match
@@ -264,7 +266,7 @@ app.post('/register', (req: any, res: any) => {
 });
 
 app.post('/2fa', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const body = req.body;
     const authentication = require('./utils/authentication');
     // Verify session and email cookies exist
@@ -290,7 +292,7 @@ app.post('/2fa', (req: any, res: any) => {
 /* Routes that require authentication */
 
 app.use(function(req: any, res: any, next: any) {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const authentication = require('./utils/authentication');
     // Verify session and email cookies exist
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
@@ -316,7 +318,7 @@ app.use(function(req: any, res: any, next: any) {
 
 // Enable maintenance mode
 app.post('/api/toggle-maintenance', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const authentication = require('./utils/authentication');
     const body = req.body;
     authentication.checkAccess(req.cookies.email)
@@ -343,7 +345,7 @@ app.post('/api/toggle-maintenance', (req: any, res: any) => {
 });
 
 app.post('/logout', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     db.query('DELETE FROM sessions WHERE session = ?', [req.cookies.session])
         .then(() => {
             logging.log.error(`[LOGOUT] ${req.cookies.email}`);
@@ -357,16 +359,18 @@ app.post('/logout', (req: any, res: any) => {
         });
 });
 
-app.use('/cpanel', express.static(path.join(__dirname, '/cpanel')));
+app.use('/cpanel', express.static(path.join(__dirname, '/cpanel'), {
+    maxAge: 2.88e+7
+}));
 
 // API
 app.get('/api', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     res.status(200).send('OK');
 });
 
 app.get('/api/@me', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     db.query('SELECT email FROM accounts WHERE email = ?', [req.cookies.email])
         .then((results: any) => {
             if (results.length > 0) {
@@ -382,7 +386,7 @@ app.get('/api/@me', (req: any, res: any) => {
 });
 
 app.get('/api/serverinfo', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const serverinfo = {
         ip: req.socket.remoteAddress,
         directory: path.basename(__dirname),
@@ -393,7 +397,7 @@ app.get('/api/serverinfo', (req: any, res: any) => {
 });
 
 app.get('/api/fileusage', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const fs = require('node:fs');
     fs.statfs('/', (err: any, stats: any) => {
         const data = {
@@ -406,7 +410,7 @@ app.get('/api/fileusage', (req: any, res: any) => {
 });
 
 app.post('/api/create-account', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const authentication = require('./utils/authentication');
     const body = req.body;
     if (!body.email) return res.redirect(path.join(__dirname, 'back'));
@@ -448,12 +452,12 @@ app.post('/api/create-account', (req: any, res: any) => {
 });
 
 app.post('/2fa/resend', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     createSession(req, res, req.cookies.email);
 });
 
 app.post('/reset-password', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
     const session = cryptojs.randomBytes(64).toString('hex');
     const temp = shuffle(session, 8);
@@ -468,7 +472,7 @@ app.post('/reset-password', (req: any, res: any) => {
 });
 
 app.post('/api/reset-password', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');    
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');    
     const body = req.body;
     if (!body.temppassword || !body.password1 || !body.password2) return res.sendFile(path.join(__dirname, 'login/passwordreset.html'));
     if (body.password1 !== body.password2) return res.sendFile(path.join(__dirname, 'login/passwordreset.html'));
@@ -496,7 +500,7 @@ app.post('/api/reset-password', (req: any, res: any) => {
 
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any, next: any) {
-    res.setHeader('Cache-Control', 'public, max-age=31557600');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     // Check if it is a subdomain
     if (req.subdomains.length > 0) return next();
     res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);
