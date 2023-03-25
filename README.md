@@ -115,7 +115,7 @@ const transporter = nodemailer.createTransport({
 # Sending an email
 ```js
 const email = require('./utils/mailer');
-email.send(_email, _2FACode);
+email.send(email: string, subject: string, message: string);
 ```
 
 # Creating a scheduled job
