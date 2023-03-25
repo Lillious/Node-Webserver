@@ -161,7 +161,9 @@ app.use('/login', express.static(path.join(__dirname, '/login'), {
 (function() {
     const settings = require('./settings.json');
     if (settings.registration) {
-        app.use('/register', express.static(path.join(__dirname, '/register')));
+        app.use('/register', express.static(path.join(__dirname, '/register'), {
+            maxAge: 2.88e+7
+        }));
     }
 })();
 
@@ -213,6 +215,7 @@ app.post('/login', (req: any, res: any) => {
 
 // Check if registration is enabled
 app.get('/register', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const settings = require('./settings.json');
     if (settings.registration) {
         res.status(200);
