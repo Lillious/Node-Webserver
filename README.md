@@ -109,7 +109,7 @@ email.send(email: string, subject: string, message: string);
 ```
 
 # Creating a scheduled job
-Location: "src/jobs/jobs.ts"
+(Located in src/jobs/jobs.ts)
 ```js
     myFirstJob: {
         name: string,
