@@ -74,8 +74,7 @@ Example:
 app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'))));
 ```
 
-# Creating a Database Connection
-Required Environment Variables
+# Required Environment Variables
 ```
 DATABASE_HOST
 DATABASE_USER
