@@ -77,19 +77,9 @@ const port = '80';
 app.set('port', port);
 const server = http.createServer(app);
 
-// Import Jobs
+// Job System
 if (cluster.isPrimary) {
-    fs.readdirSync(path.join(__dirname, 'jobs')).forEach((file: any) => {
-        if (file.substr(-3) === '.js') {
-            // Load the job
-            logging.log.info(`Loading Job: ${file}`);
-            try {
-                require(`./jobs/${file}`);
-            } catch (err: any) {
-                logging.log.error(`Failed to load job: ${file}\n${err}`);
-            }
-        }
-    });
+    require ('./jobs/jobs');
 }
 
 // Cluster Setup

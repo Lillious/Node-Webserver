@@ -136,3 +136,6 @@ dist
 
 # Rest
 *.http
+
+#Backup files
+backups/
