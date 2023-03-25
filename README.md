@@ -91,7 +91,7 @@ EMAIL_PASSWORD
 
 # Using the query builder
 ```js
-db.query('SELECT someRow FROM someTable WHERE someValue = ? STATEMENT', [someValue]).then((results) => {
+db.query('SELECT someRow FROM someTable WHERE someValue = ?', [someValue]).then((results) => {
     // Do something with results
 }).catch(err) {
     logging.log.error(err);
