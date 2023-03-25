@@ -44,35 +44,14 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Job Scheduler System
 
 # Scheduled Jobs
-- Backups (1 hour interval)
+- Backups
 - Clear Expired Login Sessions
 
 # Experimental Features
 - Control Panel (WIP)
 
-# Steps to install, build and run
-- Install
-```
-npm i
-```
-- Running
-```
-npm start
-```
-
-# Requirements
+# Node Version Requirement
 NodeJS v19.7.0 +
-
-# Creating a subdomain
-- Create a folder inside /src
-Example: ``mynewsubdomain``
-- Create routing for the newly created subdomain in app.ts under the section "Sub Domain Setup and Static Files Setup"
-
-Example:
-
-```js
-app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'))));
-```
 
 # Required Environment Variables
 ```
@@ -86,6 +65,17 @@ EMAIL_PORT
 EMAIL_SECURE
 EMAIL_USER
 EMAIL_PASSWORD
+```
+
+# Creating a subdomain
+- Create a folder inside /src
+Example: ``mynewsubdomain``
+- Create routing for the newly created subdomain in app.ts under the section "Sub Domain Setup and Static Files Setup"
+
+Example:
+
+```js
+app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'))));
 ```
 
 # Using the query builder
@@ -130,20 +120,3 @@ Location: "src/jobs/jobs.ts"
         }
     }
 ```
-
-# Importing the sample SQL database
-Location: "src/utils/sample database/cpanel.sql"
-Replace UPDATE_TO_YOUR_EMAIL_ADDRESS with your email address for the system admin account
-
-# Enable Maintainence Mode
-During Current Session
-- Located in cpanel settings
-
-At Startup
-- Located in settings.json at root
-
-# Enable Registration System
-- Located in settings.json at root
-
-# Plugin Settings
-- Located in plugins.json at root
