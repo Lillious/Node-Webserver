@@ -15,6 +15,7 @@ const logging = require('./utils/logging');
 const email = require('./utils/mailer');
 const db = require('./utils/database');
 const fs = require('node:fs');
+const authentication = require('./utils/authentication');
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -179,9 +180,9 @@ app.use(vhost('localhost', express.static(path.join(__dirname, '/root'), {
 
 // Login Post Request
 app.post('/login', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     res.clearCookie('session');
     res.clearCookie('email');
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const body = req.body;
     if (body.email && body.password) {
         if (!validateEmail(body.email)) return res.redirect('/login');
@@ -228,9 +229,9 @@ app.get('/register', (req: any, res: any) => {
 app.get('/maintenance', (req: any, res: any) => {
     const settings = require('./settings.json');
     if (settings.maintenance) {
-        res.status(200).send("Maintenance Mode: Enabled");
+        res.status(200).send(true);
     } else {
-        res.status(404).send("Maintenance Mode: Disabled");
+        res.status(200).send(false);
     }
 });
 
@@ -271,7 +272,6 @@ app.post('/register', (req: any, res: any) => {
 app.post('/2fa', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const body = req.body;
-    const authentication = require('./utils/authentication');
     // Verify session and email cookies exist
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
     // Check if the email is valid
@@ -296,7 +296,6 @@ app.post('/2fa', (req: any, res: any) => {
 
 app.use(function(req: any, res: any, next: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    const authentication = require('./utils/authentication');
     // Verify session and email cookies exist
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
     // Check if the email is valid
@@ -322,7 +321,6 @@ app.use(function(req: any, res: any, next: any) {
 // Enable maintenance mode
 app.post('/api/toggle-maintenance', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    const authentication = require('./utils/authentication');
     const body = req.body;
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
@@ -332,13 +330,12 @@ app.post('/api/toggle-maintenance', (req: any, res: any) => {
                 settings.maintenance = true;
                 fs.writeFileSync(path.join(__dirname, 'settings.json'), JSON.stringify(settings, null, 4));
                 logging.log.warn('[Maintenance Mode] - Enabled');
-                res.redirect('back');
             } else {
                 settings.maintenance = false;
                 fs.writeFileSync(path.join(__dirname, 'settings.json'), JSON.stringify(settings, null, 4));
                 logging.log.warn('[Maintenance Mode] - Disabled');
-                res.redirect('back');
             }
+            res.redirect('back');
         } else {
             res.redirect('/cpanel');
         }
@@ -414,7 +411,6 @@ app.get('/api/fileusage', (req: any, res: any) => {
 
 app.post('/api/create-account', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    const authentication = require('./utils/authentication');
     const body = req.body;
     if (!body.email) return res.redirect(path.join(__dirname, 'back'));
     // Check access

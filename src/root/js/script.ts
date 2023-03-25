@@ -6,7 +6,7 @@
             headers: {
                 'Content-Type': 'application/json',
             },
-            cache: 'no-cache',
+            cache: 'force-cache',
         })
         .then((res: any) => {
             if (res.status === 200) {
@@ -32,19 +32,26 @@
         })
         .then((res: any) => {
             if (res.status === 200) {
-                if (maintenance) maintenance.style.display = 'flex';
-                if (maintenance) maintenance.innerHTML = 'Website is currently under maintenance. Performace may be affected.';
-                if (maintenanceButton) maintenanceButton.textContent = 'Disable';
-                if (maintenanceModeText) maintenanceModeText.innerHTML = 'Maintenance Mode: Enabled';
-                if (maintenanceMode) (<HTMLInputElement>maintenanceMode as HTMLInputElement).value = 'false';
-            } else {
-                if (maintenanceButton) maintenanceButton.textContent = 'Enable';
-                if (maintenanceModeText) maintenanceModeText.innerHTML = 'Maintenance Mode: Disabled';
-                if (maintenanceMode) (<HTMLInputElement>maintenanceMode as HTMLInputElement).value = 'true';
+                res.json().then((data: any) => {
+                    if (data === true) {
+                        if (maintenance) maintenance.style.display = 'flex';
+                        if (maintenance) maintenance.innerHTML = 'Website is currently under maintenance. Performace may be affected.';
+                        if (maintenanceButton) maintenanceButton.textContent = 'Disable';
+                        if (maintenanceModeText) maintenanceModeText.innerHTML = 'Maintenance Mode: Enabled';
+                        if (maintenanceMode) (<HTMLInputElement>maintenanceMode as HTMLInputElement).value = 'false';
+                    } else {
+                        if (maintenance) maintenance.style.display = 'none';
+                        if (maintenanceButton) maintenanceButton.textContent = 'Enable';
+                        if (maintenanceModeText) maintenanceModeText.innerHTML = 'Maintenance Mode: Disabled';
+                        if (maintenanceMode) (<HTMLInputElement>maintenanceMode as HTMLInputElement).value = 'true';
+                    }
+                });
             }
         })
         .catch((err: any) => {
-            console.error(err);
+            if (err) {
+                console.error(err);
+            }
         });
     }
 
@@ -53,6 +60,10 @@
         logout.addEventListener('click', () => {
             fetch('/logout', {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    cache: 'force-cache',
                 })
                 .then((res: any) => {
                     if (res.status === 200) {
@@ -115,6 +126,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                cache: 'force-cache',
             })
             .then((res: any) => {
                 if (res.status === 200) {

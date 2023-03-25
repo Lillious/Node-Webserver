@@ -43,9 +43,9 @@ export const checkCode = (email: string, code: string) => {
     });
 }
 
-export const checkAccess = (email: string, password: string) => {
+export const checkAccess = (email: string) => {
     return new Promise((resolve, reject) => {
-        db.query('SELECT access FROM accounts WHERE email = ?', [email, password]).then((results: any) => {
+        db.query('SELECT access FROM accounts WHERE email = ?', [email]).then((results: any) => {
             if (results.length > 0) {
                 resolve(results[0].access);
             } else {
