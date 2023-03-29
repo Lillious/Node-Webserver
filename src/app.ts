@@ -291,6 +291,32 @@ app.post('/2fa', (req: any, res: any) => {
         });
 });
 
+app.post('/api/reset-password', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');    
+    const body = req.body;
+    if (!body.temppassword || !body.password1 || !body.password2) return res.redirect('back');
+    if (body.password1 !== body.password2) return res.redirect('back');
+    db.query('SELECT passwordreset FROM accounts WHERE email = ? AND password = ?', [req.cookies.email, hash(body.temppassword)])
+        .then((results: any) => {
+            if (results[0].passwordreset === '1') {
+                db.query('UPDATE accounts SET password = ?, passwordreset = ? WHERE email = ?', [hash(body.password1), '0', req.cookies.email])
+                    .then(() => {
+                        logging.log.info(`[PASSWORD RESET] ${req.cookies.email}`);
+                        createSession(req, res);
+                }).catch((err: any) => {
+                    logging.log.error(err);
+                    res.status(500).send('Internal Server Error');
+                });
+            } else {
+                res.redirect('/login');
+            }
+        }
+    ).catch((err: any) => {
+        logging.log.error(err);
+        res.status(500).send('Internal Server Error');
+    });
+});
+
 /* Start Secure Routing */
 /* Routes that require authentication */
 
@@ -469,33 +495,6 @@ app.post('/reset-password', (req: any, res: any) => {
         res.redirect('/login');
     });
 });
-
-app.post('/api/reset-password', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');    
-    const body = req.body;
-    if (!body.temppassword || !body.password1 || !body.password2) return res.sendFile(path.join(__dirname, 'login/passwordreset.html'));
-    if (body.password1 !== body.password2) return res.sendFile(path.join(__dirname, 'login/passwordreset.html'));
-    db.query('SELECT passwordreset FROM accounts WHERE email = ? AND password = ?', [req.cookies.email, hash(body.temppassword)])
-        .then((results: any) => {
-            if (results[0].passwordreset === '1') {
-                db.query('UPDATE accounts SET password = ?, passwordreset = ? WHERE email = ?', [hash(body.password1), '0', req.cookies.email])
-                    .then(() => {
-                        logging.log.info(`[PASSWORD RESET] ${req.cookies.email}`);
-                        createSession(req, res);
-                }).catch((err: any) => {
-                    logging.log.error(err);
-                    res.status(500).send('Internal Server Error');
-                });
-            } else {
-                res.redirect('/login');
-            }
-        }
-    ).catch((err: any) => {
-        logging.log.error(err);
-        res.status(500).send('Internal Server Error');
-    });
-});
-
 
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any, next: any) {
