@@ -344,6 +344,7 @@ app.use(function(req: any, res: any, next: any) {
 });
 
 app.get('/admin', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     authentication.checkAccess(req.cookies.email).then((results: any) => {
         if (results === 1) {
             app.use(express.static(path.join(__dirname, '/admin')));
