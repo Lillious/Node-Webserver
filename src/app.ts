@@ -52,7 +52,7 @@ app.use(session({
     cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         path: '/',
-        domain: '.lillious.com' // Update this to your domain
+        domain: '*.*'
     },
     resave: true,
     saveUninitialized: true
