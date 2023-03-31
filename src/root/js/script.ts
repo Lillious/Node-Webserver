@@ -79,14 +79,21 @@
     const settings = document.getElementById('settings');
     if (settings) {
         settings.addEventListener('click', () => {
-            window.location.href = '/cpanel/settings.html';
+            window.location.href = '/dashboard/settings.html';
         });
     }
 
-    const cpanel = document.getElementById('cpanel');
-    if (cpanel) {
-        cpanel.addEventListener('click', () => {
-            window.location.href = '/cpanel';
+    const admin = document.getElementById('admin');
+    if (admin) {
+        admin.addEventListener('click', () => {
+            window.location.href = '/admin';
+        });
+    }
+
+    const dashboard = document.getElementById('dashboard');
+    if (dashboard) {
+        dashboard.addEventListener('click', () => {
+            window.location.href = '/dashboard';
         });
     }
 
@@ -133,7 +140,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                cache: 'force-cache',
+                cache: 'no-cache',
             })
             .then((res: any) => {
                 if (res.status === 200) {
@@ -145,5 +152,30 @@
             .catch((err: any) => {
                 console.error(err);
             });
+    }
+
+    const users = document.getElementById('user-list-container');
+    if (users) {
+        fetch('/api/users', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            cache: 'no-cache',
+        })
+        .then((res: any) => {
+            if (res.status === 200) {
+                res.json().then((data: any) => {
+                    if (data.length === 0) {
+                        users.innerHTML = '<div class="user-list-item"><p>No users found</p></div>';
+                    } else {
+                        for (let i = 0; i < data.length; i++) {
+                            const user = data[i];
+                            users.innerHTML += `<div class="user-list-item"><p>${user.email}</p></div>`;
+                        }
+                    }
+                });
+            }
+        });
     }
 })();

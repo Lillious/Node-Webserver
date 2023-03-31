@@ -1,7 +1,7 @@
 <html>
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1">
-        <title>Control Panel</title>
+        <title>Dashboard</title>
         <!-- Preload css -->
         <link rel="preload" href="../css/style.css" as="style" onload="this.rel='stylesheet'">
         <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style" onload="this.rel='stylesheet'">
@@ -9,7 +9,9 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
         <!-- Preload js -->
         <script rel="preload" src="../js/script.js" as="script" onload="this.rel='script'"></script>
+        <script rel="preload" src="../js/serverinfo.js" as="script" onload="this.rel='script'"></script>
         <script defer async src="../js/script.js"></script>
+        <script defer async src="../js/serverinfo.js"></script>
     </head>
     <body tabindex="-1">
         <div id="banner"></div>
@@ -19,30 +21,26 @@
         </div>
         <div id="card">
             <input type="button" id="logout" value="Logout"/>
-            <input type="button" id="cpanel" value="Cpanel"/>
+            <input type="button" id="admin" value="Admin"/>
+            <input type="button" id="dashboard" value="Dashboard"/>
             <input type="button" id="settings" value="Settings"/>
             <input type="button" id="home" value="Home"/>
         </div>
         <div id="info-panel">
-            <h1 id="reset-password">Reset Password</h1>
-            <form action="/reset-password" method="post">
-                <br>
-                <button type="submit" id="reset-password-button">Reset</button>
-            </form>
+            <h1 id="primary-domain">Domain</h1>
+            <p id="primary-domain-text"></p>
             <hr>
-            <h1 id="create-account">Create Account</h1>
-            <form action="/api/create-account" method="post">
-                <input type="email" name="email" id="email" placeholder="example@domain.com" required autocomplete="off" spellcheck="false">
-                <br><br><br>
-                <button type="submit" id="create-account-button">Create</button>
-            </form>
+            <h1 id="server-ip">IP Address</h1>
+            <p id="server-ip-text"></p>
             <hr>
-            <h1 id="toggle-maintenance"></h1>
-            <form action="/api/toggle-maintenance" method="post">
-                <input hidden type="text" name="maintenance" id="maintenance-mode">
-                <br>
-                <button type="submit" id="toggle-maintenance-button"></button>
-            </form>
+            <h1 id="home-directory">Home Directory</h1>
+            <p id="home-directory-text"></p>
+            <hr>
+            <h1>Disk Usage</h1>
+            <p id="file-size"></p>
+            <div id="file-size-bar-container">
+                <div id="file-size-bar"></div>
+            </div>
         </div>
         <script src="//instant.page/5.2.0" type="module" integrity="sha384-jnZyxPjiipYXnSU0ygqeac2q7CVYMbh84q0uHVRRxEtvFPiQYbXWUorga2aqZJ0z"></script>
     </body>

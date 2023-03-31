@@ -4,13 +4,14 @@ require('dotenv').config();
 
 // Email setup
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: process.env.EMAIL_SECURE,
+    host: process.env.EMAIL_HOST || undefined,
+    port: process.env.EMAIL_PORT || undefined,
+    secure: process.env.EMAIL_SECURE || undefined,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD
-    }
+    },
+    service: process.env.EMAIL_SERVICE || undefined
 });
 
 export const send = (email: string, subject: string, message: string) => {
