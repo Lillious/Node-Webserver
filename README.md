@@ -53,7 +53,7 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 # Node Version Requirement
 NodeJS v19.7.0 +
 
-# Required Environment Variables
+# Used Environment Variables
 ```
 DATABASE_HOST
 DATABASE_USER
@@ -65,6 +65,7 @@ EMAIL_PORT
 EMAIL_SECURE
 EMAIL_USER
 EMAIL_PASSWORD
+EMAIL_SERVICE
 ```
 
 # Creating a subdomain
@@ -92,13 +93,14 @@ db.query('SELECT someRow FROM someTable WHERE someValue = ?', [someValue]).then(
 (Located in utils/mailer.ts)
 ```js
 const transporter = nodemailer.createTransport({
-    host: '',
-    port: 465,
-    secure: true,
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: process.env.EMAIL_SECURE,
     auth: {
-        user: '',
-        pass: ''
-    }
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+    },
+    service: process.env.EMAIL_SERVICE
 });
 ```
 

@@ -66,7 +66,7 @@ app.set('subdomain offset', 1);
 // Rate Limiting Setup
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 200, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+    max: 250, // Limit each IP to 250 requests per `window` (here, per 15 minutes)
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
@@ -281,7 +281,7 @@ app.post('/2fa', (req: any, res: any) => {
             if (!results) return res.redirect('/login');
             db.query('UPDATE sessions SET code = ? WHERE email = ?', ['0', req.cookies.email])
                 .then(() => {
-                    res.redirect('/cpanel');
+                    res.redirect('/dashboard');
                 }).catch((err: any) => {
                     logging.log.error(err);
                 });
@@ -343,6 +343,16 @@ app.use(function(req: any, res: any, next: any) {
         });
 });
 
+app.get('/admin', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email).then((results: any) => {
+        if (results === 1) {
+            app.use(express.static(path.join(__dirname, '/admin')));
+            res.sendFile(path.join(__dirname, '/admin/index.html'));
+        } else {
+            res.redirect('back');
+        }
+    });
+});
 
 // Enable maintenance mode
 app.post('/api/toggle-maintenance', (req: any, res: any) => {
@@ -363,7 +373,7 @@ app.post('/api/toggle-maintenance', (req: any, res: any) => {
             }
             res.redirect('back');
         } else {
-            res.redirect('/cpanel');
+            res.redirect('/dashboard');
         }
     }).catch((err: any) => {
         logging.log.error(err);
@@ -385,7 +395,7 @@ app.post('/logout', (req: any, res: any) => {
         });
 });
 
-app.use('/cpanel', express.static(path.join(__dirname, '/cpanel'), {
+app.use('/dashboard', express.static(path.join(__dirname, '/dashboard'), {
     maxAge: 2.88e+7
 }));
 
@@ -432,6 +442,26 @@ app.get('/api/fileusage', (req: any, res: any) => {
             used: (stats.blocks - stats.bfree) * stats.bsize,
         };
         res.status(200).send(data);
+    });
+});
+
+app.get('/api/users', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            db.query('SELECT * FROM accounts')
+                .then((results: any) => {
+                    res.send(results);
+                }).catch((err: any) => {
+                    logging.log.error(err);
+                });
+        } else {
+            res.redirect('back');
+        }
+    }
+    ).catch((err: any) => {
+        logging.log.error(err);
     });
 });
 
