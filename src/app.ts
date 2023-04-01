@@ -327,7 +327,6 @@ app.use(function(req: any, res: any, next: any) {
     // Check if the email is valid
     if (!validateEmail(req.cookies.email)) return res.redirect('/login');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    // get request url
     authentication.checkSession(req.cookies.session, ip)
         .then((results: any) => {
             if (!results) return res.redirect('/login');
@@ -399,12 +398,6 @@ app.post('/logout', (req: any, res: any) => {
 app.use('/dashboard', express.static(path.join(__dirname, '/dashboard'), {
     maxAge: 2.88e+7
 }));
-
-// API
-app.get('/api', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    res.status(200).send('OK');
-});
 
 app.get('/api/@me', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
