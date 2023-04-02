@@ -26,3 +26,23 @@ CREATE TABLE `sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 LOCK TABLES `sessions` WRITE;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `allowed_ips`;
+CREATE TABLE `allowed_ips` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `ip` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+  PRIMARY KEY (`ip`),
+  UNIQUE KEY `ip_UNIQUE` (`ip`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+LOCK TABLES `allowed_ips` WRITE;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `blocked_ips`;
+CREATE TABLE `blocked_ips` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `ip` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+  PRIMARY KEY (`ip`),
+  UNIQUE KEY `ip_UNIQUE` (`ip`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
