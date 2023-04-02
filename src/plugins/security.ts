@@ -59,7 +59,7 @@ server.app.use(function(req: any, res: any, next: any) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     // Check if null routing is enabled
     if (settings.nullRouting) {
-        // Check if the IP is allowed
+        // Check if the IP is allowed and return if not
         db.query('SELECT * FROM allowed_ips WHERE ip = ?', [ip])
         .then((result: any) => {
             if (result.length === 0) return;
@@ -93,7 +93,7 @@ function BlockIp (ip: string) {
     db.query('SELECT * FROM allowed_ips WHERE ip = ?', [ip])
     .then((result: any) => {
         if (result.length > 0) return;
-        db.query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip, new Date()])
+        db.query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip])
         .then(() => {
             logging.log.warn('Blocked IP: ' + ip);
         });
