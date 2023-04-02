@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 const _logging = require('../utils/logging');
+
 const job = {
     // Clear inactive sessions from the database
     clearInactiveSessions: {

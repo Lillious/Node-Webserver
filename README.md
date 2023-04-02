@@ -42,6 +42,9 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Email based password Reset
 - Permission System
 - Job Scheduler System
+- Null Routing (DDoS mitigation)
+- IP Blocking
+- IP Whitelist
 
 # Scheduled Jobs
 - Backups

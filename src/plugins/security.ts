@@ -1,5 +1,9 @@
 const server = require('../app');
 const logging = require('../utils/logging');
+const db = require('../utils/database');
+const fs = require('fs'), path = require('path');
+const settings = require('../settings.json');
+
 const paths = [
     '.env',
     'ajax.js',
@@ -10,14 +14,11 @@ const paths = [
     'drupalSettingsLoader.js',
     'l10n.js',
     'drupal.js',
-    'wp-login.php',
-    'admin-ajax.php',
     '.env',
     'view-source',
     'wlwmanifest.xml',
     'credentials',
     '.aws',
-    'wp-config.php',
     'wp-admin',
     'shell',
     'wget',
@@ -31,22 +32,70 @@ const paths = [
     'mt-xmlrpc.cgi',
     'php'
 ]
-server.app.use(function(req: any, res: any, next: any) {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-access-token');
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    const found = paths.some(element => {
-        if (req.url.includes(element)) {
-            // Get the IP address of the request
-            logging.log.error(`[${ip}] Attack blocked: ${req.url}`);
-            return true;
-        } else {
-            return false;
+
+let requests = 0;
+
+// Calculate requests per second to the website to determine if the website is under attack
+setInterval(() => {
+    if (requests > 1000) {
+        if (!settings.nullRouting) {
+            logging.log.error(`[DDOS DETECTED] - Requests per second: ${requests}`);
+            // Enable null routing
+            settings.nullRouting = true;
+            fs.writeFileSync(path.join(__dirname, '..', 'settings.json'), JSON.stringify(settings, null, 4));
         }
-    });
-    if (found) {
-        return res.status(418).send(`Attack blocked and recorded using IP: ${ip}`);
     } else {
-        next();
+        if (settings.nullRouting) {
+            // Disable null routing
+            settings.nullRouting = false;
+            fs.writeFileSync(path.join(__dirname, '..', 'settings.json'), JSON.stringify(settings, null, 4));
+        }
+    }
+    requests = 0;
+}, 5000);
+
+server.app.use(function(req: any, res: any, next: any) {
+    requests++;
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    // Check if null routing is enabled
+    if (settings.nullRouting) {
+        // Check if the IP is allowed
+        db.query('SELECT * FROM allowed_ips WHERE ip = ?', [ip])
+        .then((result: any) => {
+            if (result.length === 0) return;
+        });
+    } else {
+        // Check if the IP is blocked
+        db.query('SELECT * FROM blocked_ips WHERE ip = ?', [ip])
+        .then((result: any) => {
+            if (result.length > 0) return;
+            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-access-token');
+            res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+            const found = paths.some(element => {
+                if (req.url.includes(element)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+            if (found) {
+                BlockIp(ip);
+                return;
+            } else {
+                next();
+            }
+        });
     }
 });
+
+function BlockIp (ip: string) {
+    // Check if the IP is allowed
+    db.query('SELECT * FROM allowed_ips WHERE ip = ?', [ip])
+    .then((result: any) => {
+        if (result.length > 0) return;
+        db.query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip, new Date()])
+        .then(() => {
+            logging.log.warn('Blocked IP: ' + ip);
+        });
+    });
+}
