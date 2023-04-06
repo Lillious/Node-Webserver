@@ -31,9 +31,11 @@ const paths = [
     'execute-solution',
     'mt-xmlrpc.cgi',
     'php'
-]
+];
 
 let requests = 0;
+
+
 
 // Calculate requests per second to the website to determine if the website is under attack
 setInterval(() => {
@@ -54,48 +56,58 @@ setInterval(() => {
     requests = 0;
 }, 1000);
 
+// Get all blocked IPs from the database and store them in memory for faster access
+const blacklist = require('../utils/blacklist');
+db.query('SELECT * FROM blocked_ips')
+    .then((result: any) => {
+        result.forEach((element: any) => {
+            blacklist.service.add(element.ip);
+        });
+    });
+
+// Get all allowed IPs from the database and store them in memory for faster access
+const whitelist = require('../utils/whitelist');
+db.query('SELECT * FROM allowed_ips')
+    .then((result: any) => {
+        result.forEach((element: any) => {
+            whitelist.service.add(element.ip);
+        });
+    });
+
 server.app.use(function(req: any, res: any, next: any) {
     requests++;
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-access-token');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     // Check if null routing is enabled
     if (settings.nullRouting) {
         // Check if the IP is allowed and return if not
-        db.query('SELECT * FROM allowed_ips WHERE ip = ?', [ip])
-        .then((result: any) => {
-            if (result.length === 0) return;
-        });
+        const w_ips = whitelist.service.getIPs();
+        if (!w_ips.includes(ip)) return;
     } else {
         // Check if the IP is blocked
-        db.query('SELECT * FROM blocked_ips WHERE ip = ?', [ip])
-        .then((result: any) => {
-            if (result.length > 0) return;
-            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-access-token');
-            res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-            const found = paths.some(element => {
-                if (req.url.includes(element)) {
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-            if (found) {
-                BlockIp(ip);
-                return;
+        const b_ips = blacklist.service.getIPs();
+        if (b_ips.includes(ip)) return;
+        const found = paths.some(element => {
+            if (req.url.includes(element)) {
+                return true;
             } else {
-                next();
+                return false;
             }
         });
+        if (found) {
+            const w_ips = whitelist.service.getIPs();
+            const b_ips = blacklist.service.getIPs();
+            if (!b_ips.includes(ip) && !w_ips.includes(ip)) {
+                db.query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip])
+                    .then(() => {
+                        logging.log.error(`[BLOCKED] - ${ip} - ${req.url}`);
+                        blacklist.service.add(ip);
+                    });
+            }
+            return;
+        } else {
+            next();
+        }
     }
 });
-
-function BlockIp (ip: string) {
-    // Check if the IP is allowed
-    db.query('SELECT * FROM allowed_ips WHERE ip = ?', [ip])
-    .then((result: any) => {
-        if (result.length > 0) return;
-        db.query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip])
-        .then(() => {
-            logging.log.warn('Blocked IP: ' + ip);
-        });
-    });
-}
