@@ -37,7 +37,7 @@ let requests = 0;
 
 // Calculate requests per second to the website to determine if the website is under attack
 setInterval(() => {
-    if (requests > 1000) {
+    if (requests > 100) {
         if (!settings.nullRouting) {
             logging.log.error(`[DDOS DETECTED] - Requests per second: ${requests}`);
             // Enable null routing
@@ -52,7 +52,7 @@ setInterval(() => {
         }
     }
     requests = 0;
-}, 5000);
+}, 1000);
 
 server.app.use(function(req: any, res: any, next: any) {
     requests++;
