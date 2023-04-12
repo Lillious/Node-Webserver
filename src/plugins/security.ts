@@ -57,20 +57,19 @@ setInterval(() => {
 }, 1000);
 
 // Get all blocked IPs from the database and store them in memory for faster access
-const blacklist = require('../utils/blacklist');
+const ipservice = require('../utils/ipservice');
 db.query('SELECT * FROM blocked_ips')
     .then((result: any) => {
         result.forEach((element: any) => {
-            blacklist.service.add(element.ip);
+            ipservice.bservice.add(element.ip);
         });
     });
 
 // Get all allowed IPs from the database and store them in memory for faster access
-const whitelist = require('../utils/whitelist');
 db.query('SELECT * FROM allowed_ips')
     .then((result: any) => {
         result.forEach((element: any) => {
-            whitelist.service.add(element.ip);
+            ipservice.wservice.add(element.ip);
         });
     });
 
@@ -82,11 +81,11 @@ server.app.use(function(req: any, res: any, next: any) {
     // Check if null routing is enabled
     if (settings.nullRouting) {
         // Check if the IP is allowed and return if not
-        const w_ips = whitelist.service.getIPs();
+        const w_ips = ipservice.wservice.getIPs();
         if (!w_ips.includes(ip)) return;
     } else {
         // Check if the IP is blocked
-        const b_ips = blacklist.service.getIPs();
+        const b_ips = ipservice.bservice.getIPs();
         if (b_ips.includes(ip)) return;
         const found = paths.some(element => {
             if (req.url.includes(element)) {
@@ -96,13 +95,13 @@ server.app.use(function(req: any, res: any, next: any) {
             }
         });
         if (found) {
-            const w_ips = whitelist.service.getIPs();
-            const b_ips = blacklist.service.getIPs();
+            const w_ips = ipservice.wservice.getIPs();
+            const b_ips = ipservice.bservice.getIPs();
             if (!b_ips.includes(ip) && !w_ips.includes(ip)) {
                 db.query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip])
                     .then(() => {
                         logging.log.error(`[BLOCKED] - ${ip} - ${req.url}`);
-                        blacklist.service.add(ip);
+                        ipservice.bservice.add(ip);
                     });
             }
             return;
