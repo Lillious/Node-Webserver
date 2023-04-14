@@ -1,27 +1,21 @@
-class BlackListService {
-    constructor(private ips: string[] = []) {}
+class IpService {
+    constructor(private allowed_ips: string[] = [], private blocked_ips: string[] = []) {}
 
-    add(ip: string): number {
-        return this.ips.push(ip);
+    whitelistAdd(ip: string): number {
+        return this.allowed_ips.push(ip);
     }
 
-    getIPs(): string[] {
-        return this.ips;
-    }
-}
-
-export const bservice: BlackListService = new BlackListService();
-
-class WhiteListService {
-    constructor(private ips: string[] = []) {}
-
-    add(ip: string): number {
-        return this.ips.push(ip);
+    getWhitelistedIPs(): string[] {
+        return this.allowed_ips;
     }
 
-    getIPs(): string[] {
-        return this.ips;
+    blacklistAdd(ip: string): number {
+        return this.blocked_ips.push(ip);
+    }
+
+    getBlacklistedIPs(): string[] {
+        return this.blocked_ips;
     }
 }
 
-export const wservice: WhiteListService = new WhiteListService();
+export const service: IpService = new IpService();

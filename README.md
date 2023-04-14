@@ -125,3 +125,16 @@ email.send(email: string, subject: string, message: string);
         }
     }
 ```
+
+# Whitelisting / Blacklisting an IP
+```js
+const ips = require('../utils/ipservice');
+// Add to Blacklist
+ips.service.blacklistAdd(ip: string);
+// List Blacklisted IPs
+const b_ips = ips.service.getBlacklistedIPs();
+// Add to Whitelist
+ips.service.whitelistAdd(ip: string);
+// List Whitelisted IPs
+const w_ips = ips.service.getWhitelistedIPs();
+```
