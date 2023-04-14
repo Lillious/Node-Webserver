@@ -116,14 +116,14 @@ email.send(email: string, subject: string, message: string);
 # Creating a scheduled job
 (Located in src/jobs/jobs.ts)
 ```js
-    myFirstJob: {
-        name: string,
-        enabled: boolean,
-        interval: number.
-        start() {
-            // Code to execute
-        }
+myFirstJob: {
+    name: string,
+    enabled: boolean,
+    interval: number.
+    start() {
+        // Code to execute
     }
+}
 ```
 
 # Whitelisting / Blacklisting an IP
