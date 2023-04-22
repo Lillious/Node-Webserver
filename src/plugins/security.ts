@@ -3,6 +3,9 @@ const logging = require('../utils/logging');
 const db = require('../utils/database');
 const fs = require('fs'), path = require('path');
 const settings = require('../settings.json');
+const ips = require('../utils/ipservice');
+const w_ips = ips.service.getWhitelistedIPs();
+const b_ips = ips.service.getBlacklistedIPs();
 
 const paths = [
     '.env',
@@ -35,8 +38,6 @@ const paths = [
 
 let requests = 0;
 
-
-
 // Calculate requests per second to the website to determine if the website is under attack
 setInterval(() => {
     if (requests > 100) {
@@ -57,7 +58,6 @@ setInterval(() => {
 }, 1000);
 
 // Get all blocked IPs from the database and store them in memory for faster access
-const ips = require('../utils/ipservice');
 db.query('SELECT * FROM blocked_ips')
     .then((result: any) => {
         result.forEach((element: any) => {
@@ -71,6 +71,9 @@ db.query('SELECT * FROM allowed_ips')
         result.forEach((element: any) => {
             ips.service.whitelistAdd(element.ip);
         });
+    })
+    .catch((err: any) => {
+        logging.log.error(err);
     });
 
 server.app.use(function(req: any, res: any, next: any) {
@@ -81,11 +84,9 @@ server.app.use(function(req: any, res: any, next: any) {
     // Check if null routing is enabled
     if (settings.nullRouting) {
         // Check if the IP is allowed and return if not
-        const w_ips = ips.service.getWhitelistedIPs();
         if (!w_ips.includes(ip)) return;
     } else {
         // Check if the IP is blocked
-        const b_ips = ips.service.getBlacklistedIPs();
         if (b_ips.includes(ip)) return;
         const found = paths.some(element => {
             if (req.url.includes(element)) {
@@ -95,15 +96,15 @@ server.app.use(function(req: any, res: any, next: any) {
             }
         });
         if (found) {
-            const w_ips = ips.service.getWhitelistedIPs();
-            const b_ips = ips.service.getBlacklistedIPs();
-            if (!b_ips.includes(ip) && !w_ips.includes(ip)) {
-                db.query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip])
-                    .then(() => {
-                        logging.log.error(`[BLOCKED] - ${ip} - ${req.url}`);
-                        ips.service.blacklistAdd(ip);
-                    });
-            }
+            if (b_ips.includes(ip) || w_ips.includes(ip)) return; // IP is already blocked or is whitelisted. Ignore
+            db.query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip])
+                .then(() => {
+                    logging.log.error(`[BLOCKED] - ${ip} - ${req.url}`);
+                    ips.service.blacklistAdd(ip);
+                })
+                .catch((err: any) => {
+                    logging.log.error(err);
+                });
             return;
         } else {
             next();
