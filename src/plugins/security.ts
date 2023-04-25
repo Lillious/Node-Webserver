@@ -1,8 +1,6 @@
 const server = require('../app');
 const logging = require('../utils/logging');
 const db = require('../utils/database');
-const fs = require('fs'), path = require('path');
-const settings = require('../settings.json');
 const ips = require('../utils/ipservice');
 const w_ips = ips.service.getWhitelistedIPs();
 const b_ips = ips.service.getBlacklistedIPs();
