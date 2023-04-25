@@ -1,5 +1,4 @@
 {
     "registration": false,
-    "maintenance": false,
-    "nullRouting": false
+    "maintenance": false
 }
