@@ -6,6 +6,7 @@ const settings = require('../settings.json');
 const ips = require('../utils/ipservice');
 const w_ips = ips.service.getWhitelistedIPs();
 const b_ips = ips.service.getBlacklistedIPs();
+const NullRouting = require('../utils/nullrouting');
 
 const paths = [
     '.env',
@@ -41,17 +42,15 @@ let requests = 0;
 // Calculate requests per second to the website to determine if the website is under attack
 setInterval(() => {
     if (requests > 100) {
-        if (!settings.nullRouting) {
+        if (!NullRouting.service.isEnabled()) {
             logging.log.error(`[DDOS DETECTED] - Requests per second: ${requests}`);
             // Enable null routing
-            settings.nullRouting = true;
-            fs.writeFileSync(path.join(__dirname, '..', 'settings.json'), JSON.stringify(settings, null, 4));
+            NullRouting.service.enable();
         }
     } else {
-        if (settings.nullRouting) {
+        if (NullRouting.service.isEnabled()) {
             // Disable null routing
-            settings.nullRouting = false;
-            fs.writeFileSync(path.join(__dirname, '..', 'settings.json'), JSON.stringify(settings, null, 4));
+            NullRouting.service.disable();
         }
     }
     requests = 0;
@@ -82,7 +81,7 @@ server.app.use(function(req: any, res: any, next: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     // Check if null routing is enabled
-    if (settings.nullRouting) {
+    if (NullRouting.service.isEnabled()) {
         // Check if the IP is allowed and return if not
         if (!w_ips.includes(ip)) return;
     } else {
