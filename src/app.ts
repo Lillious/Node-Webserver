@@ -150,6 +150,33 @@ app.use(function(req: any, res: any, next: any) {
     }
 });
 
+
+// Support for multiple domains on one server
+
+const domains: string[] = [];
+
+app.use(function(req: any, res: any, next: any) {
+    // If no domains are set, skip this
+    if (!domains || domains.length === 0) return next();
+    domains.forEach(domain => {
+        if (req.headers.host === domain) {
+            logging.log.info(`Redirecting ${req.headers.host} to /${domain}`);
+            app.use(`/${domain}`, express.static(path.join(__dirname, `/${domain}`), {
+                maxAge: 2.88e+7
+            }));
+            // Check if the file exists in the domain folder and serve it if it exists
+            if (fs.existsSync(path.join(__dirname, `/${domain}${req.path}`))) {
+                res.sendFile(path.join(__dirname, `/${domain}${req.path}`));
+            } else {
+                // Otherwise, send the index.html file
+                res.sendFile(path.join(__dirname, `/${domain}/index.html`));
+            }
+        } else {
+            next();
+        }   
+    });
+});
+
 /* Start Unsecure Routing */
 /* Routes that do not require authentication */
 

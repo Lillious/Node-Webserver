@@ -21,6 +21,7 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 - Web Server Settings
 - Sample Database
 - Maintenance Mode Banner
+- Multidomain Support
 
 # Security Features
 - CORS
