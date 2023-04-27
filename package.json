@@ -1,6 +1,6 @@
 {
   "name": "node-webserver",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "An easy-to-use webserver powered by Node and ExpressJS",
   "main": "dist/src/app.js",
   "scripts": {
