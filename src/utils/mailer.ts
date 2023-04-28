@@ -1,20 +1,18 @@
-const nodemailer = require('nodemailer');
-const logging = require('../utils/logging');
-require('dotenv').config();
+import nodemailer from 'nodemailer';
+import * as log from '../utils/logging.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Email setup
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || undefined,
-    port: process.env.EMAIL_PORT || undefined,
-    secure: process.env.EMAIL_SECURE || undefined,
+    service: 'Outlook365',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD
-    },
-    service: process.env.EMAIL_SERVICE || undefined
+    }
 });
 
-export const send = (email: string, subject: string, message: string) => {
+export function send (email: string, subject: string, message: string) : any {
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -23,9 +21,9 @@ export const send = (email: string, subject: string, message: string) => {
     };
     transporter.sendMail(mailOptions, function(error: any, info: any) {
         if (error) {
-            logging.log.error(error);
+            log.error(error);
         } else {
-            logging.log.info('Email sent: ' + info.response);
+            log.info('Email sent: ' + info.response);
         }
     });
 }

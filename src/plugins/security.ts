@@ -1,11 +1,10 @@
-const server = require('../app');
-const logging = require('../utils/logging');
-const db = require('../utils/database');
-const ips = require('../utils/ipservice');
-const w_ips = ips.service.getWhitelistedIPs();
-const b_ips = ips.service.getBlacklistedIPs();
-const NullRouting = require('../utils/nullrouting');
-
+import {app} from '../app.js';
+import * as log from '../utils/logging.js';
+import query from '../utils/database.js';
+import {service} from '../utils/ipservice.js';
+const w_ips = service.getWhitelistedIPs();
+const b_ips = service.getBlacklistedIPs();
+import {NullRoutingService} from '../utils/nullrouting.js';
 const paths = [
     '.env',
     'ajax.js',
@@ -40,46 +39,46 @@ let requests = 0;
 // Calculate requests per second to the website to determine if the website is under attack
 setInterval(() => {
     if (requests > 100) {
-        if (!NullRouting.service.isEnabled()) {
-            logging.log.error(`[DDOS DETECTED] - Requests per second: ${requests}`);
+        if (!NullRoutingService.isEnabled()) {
+            log.error(`[DDOS DETECTED] - Requests per second: ${requests}`);
             // Enable null routing
-            NullRouting.service.enable();
+            NullRoutingService.enable();
         }
     } else {
-        if (NullRouting.service.isEnabled()) {
+        if (NullRoutingService.isEnabled()) {
             // Disable null routing
-            NullRouting.service.disable();
+            NullRoutingService.disable();
         }
     }
     requests = 0;
 }, 1000);
 
 // Get all blocked IPs from the database and store them in memory for faster access
-db.query('SELECT * FROM blocked_ips')
+query('SELECT * FROM blocked_ips')
     .then((result: any) => {
         result.forEach((element: any) => {
-            ips.service.blacklistAdd(element.ip);
+            service.blacklistAdd(element.ip);
         });
     });
 
 // Get all allowed IPs from the database and store them in memory for faster access
-db.query('SELECT * FROM allowed_ips')
+query('SELECT * FROM allowed_ips')
     .then((result: any) => {
         result.forEach((element: any) => {
-            ips.service.whitelistAdd(element.ip);
+            service.whitelistAdd(element.ip);
         });
     })
     .catch((err: any) => {
-        logging.log.error(err);
+        log.error(err);
     });
 
-server.app.use(function(req: any, res: any, next: any) {
+app.use(function(req: any, res: any, next: any) {
     requests++;
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-access-token');
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     // Check if null routing is enabled
-    if (NullRouting.service.isEnabled()) {
+    if (NullRoutingService.isEnabled()) {
         // Check if the IP is allowed and return if not
         if (!w_ips.includes(ip)) return;
     } else {
@@ -94,13 +93,13 @@ server.app.use(function(req: any, res: any, next: any) {
         });
         if (found) {
             if (b_ips.includes(ip) || w_ips.includes(ip)) return; // IP is already blocked or is whitelisted. Ignore
-            db.query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip])
+            query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip])
                 .then(() => {
-                    logging.log.error(`[BLOCKED] - ${ip} - ${req.url}`);
-                    ips.service.blacklistAdd(ip);
+                    log.error(`[BLOCKED] - ${ip} - ${req.url}`);
+                    service.blacklistAdd(ip);
                 })
                 .catch((err: any) => {
-                    logging.log.error(err);
+                    log.error(err);
                 });
             return;
         } else {

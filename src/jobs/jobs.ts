@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-const _logging = require('../utils/logging');
+import * as log from '../utils/logging.js';
 
 const job = {
     // Clear inactive sessions from the database
@@ -26,7 +26,7 @@ const job = {
             if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir);
             const directoryToBackup = path.join(__dirname, '..', '..', '..', 'src');
             if (!fs.existsSync(directoryToBackup)) throw new Error(`Unable to locate ${directoryToBackup}`);
-            _logging.log.info('Backup started...');
+            log.info('Backup started...');
             tar.c({
                 gzip: true,
                 file: backupFile,
@@ -48,7 +48,7 @@ const job = {
                 const backupPath = path.join(backupDir, backupName);
                 fs.rename(backupFile, backupPath, (err: any) => {
                     if (err) throw err;
-                    _logging.log.info('Backup completed...');
+                    log.info('Backup completed...');
                 });
                 // Delete last backup if there are more than 5
                 fs.readdir(backupDir, (err: any, files: any) => {
@@ -65,7 +65,7 @@ const job = {
                     }
                 });
             }).catch((err: any) => {
-                _logging.log.error(err);
+                log.error(err);
             });
         }
     }
@@ -73,12 +73,12 @@ const job = {
 
 Object.keys(job).forEach((key: any) => {
     if (job[key].enabled) {
-        _logging.log.info(`Scheduling job: ${job[key].name}`);
+        log.info(`Scheduling job: ${job[key].name}`);
         setInterval(() => {
             try {
                 job[key].start();
             } catch (err) {
-                _logging.log.error(err);
+                log.error(err);
             }
         }, job[key].interval);
     }
