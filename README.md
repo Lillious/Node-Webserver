@@ -83,6 +83,21 @@ Example:
 app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'))));
 ```
 
+# Adding additional domains
+(Located in app.ts)
+Update the following array with the corresponding domains that you'd like to host.
+```js
+const domains: string[''] = [];
+```
+Once the domain is added to the array, create a folder in src/ with the name matching the domain.
+An index.html file is required at the root directory.
+Example:
+```js
+const domains: string['mydomain.com'] = [];
+```
+src/mydomain.com
+
+
 # Using the query builder
 ```js
 db.query('SELECT someRow FROM someTable WHERE someValue = ?', [someValue]).then((results) => {
