@@ -103,7 +103,7 @@ Folder: src/mydomain.com
 
 # Using the query builder
 ```js
-db.query('SELECT someRow FROM someTable WHERE someValue = ?', [someValue]).then((results) => {
+query('SELECT someRow FROM someTable WHERE someValue = ?', [someValue]).then((results) => {
     // Do something with results
 }).catch(err) {
     logging.log.error(err);
