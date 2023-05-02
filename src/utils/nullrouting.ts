@@ -14,4 +14,4 @@ class NullRouting {
     }
 }
 
-export const service: NullRouting = new NullRouting();
+export const NullRoutingService: NullRouting = new NullRouting();

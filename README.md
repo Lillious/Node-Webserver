@@ -70,6 +70,7 @@ EMAIL_SECURE
 EMAIL_USER
 EMAIL_PASSWORD
 EMAIL_SERVICE
+SESSION_KEY
 ```
 
 # Creating a subdomain
@@ -114,14 +115,11 @@ db.query('SELECT someRow FROM someTable WHERE someValue = ?', [someValue]).then(
 (Located in utils/mailer.ts)
 ```js
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: process.env.EMAIL_SECURE,
+    service: process.env.EMAIL_USER,
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-    },
-    service: process.env.EMAIL_SERVICE
+        pass: process.env.EMAIL_PASS
+    }
 });
 ```
 

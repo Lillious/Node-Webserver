@@ -1,111 +1,116 @@
-const express = require('express');
-const compression = require('compression');
+import dotenv from 'dotenv';
+dotenv.config();
+import express from 'express';
+import compression from 'compression';
 export const app = express();
-const path = require('node:path');
-const logger = require('morgan');
-const cookieParser = require('cookie-parser');
-const session = require("cookie-session")
-const http = require('node:http');
-const cluster = require('node:cluster');
-const numCPUs = require('node:os').availableParallelism();
-const rateLimit = require('express-rate-limit');
-const vhost = require('vhost');
-const hpp = require('hpp');
-const logging = require('./utils/logging');
-const email = require('./utils/mailer');
-const db = require('./utils/database');
-const fs = require('node:fs');
-const authentication = require('./utils/authentication');
-
-// View Engine Setup
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({
-    extended: false
-}));
-app.use(cookieParser());
-app.use(compression());
-app.disable('x-powered-by');
-app.use(hpp());
+import path from 'node:path';
+import logger from 'morgan';
+import cookieParser from 'cookie-parser';
+import cookieSession from 'cookie-session';
+import http from 'node:http';
+import cluster from 'node:cluster';
+import os from 'node:os';
+import { rateLimit } from 'express-rate-limit';
+import vhost from 'vhost';
+import hpp from 'hpp';
+import * as log from './utils/logging.js';
+import * as email from './utils/mailer.js';
+import fs from 'node:fs';
+import * as authentication from './utils/authentication.js';
+import query from './utils/database.js';
+import { hash, randomBytes } from './utils/hash.js';
+const port = process.env.PORT || 80;
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+import { fileURLToPath } from 'node:url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Plugin System
-const plugins = require('./plugins.json');
-// Read Plugins
-Object.keys(plugins).forEach((plugin: any) => {
-    // Check if the plugin is enabled
-    if (plugins[plugin].enabled) {
-        // Load the plugin
-        if (cluster.isPrimary) {
-            logging.log.info(`Loading Plugin: ${plugin}`);
-        }
-        try {
-            require(`./plugins/${plugin}`);
-        } catch (err: any) {
-            logging.log.error(`Failed to load plugin: ${plugin}\n${err}`);
-        }
+const data = require("./plugins.json");
+log.info(`Loading plugins...`);
+Object.keys(data).forEach((plugin: any) => {
+    if (data[plugin].enabled) {
+        import(`./plugins/${plugin}.js`).then(() => {
+            if (cluster.isPrimary) log.info(`Loading plugin: ${plugin}`);
+        }).catch((err: any) => {
+            log.error(`Failed to load plugin: ${plugin}\n${err}`);
+        });
     }
 });
 
-// Session Setup
-app.use(session({
-    secret: 'secret', // !! Change this !!
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-        path: '/',
-        domain: '*.*'
-    },
-    resave: true,
-    saveUninitialized: true
-}));
-
-app.set('trust proxy', 1);
-
-// Sub Domain Setup and Static Files Setup
-app.set('subdomain offset', 1);
-
-// Rate Limiting Setup
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 250, // Limit each IP to 250 requests per `window` (here, per 15 minutes)
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
-
-app.use(limiter);
-
-// Server Setup
-const port = '80';
-app.set('port', port);
-const server = http.createServer(app);
-
-// Job System
-if (cluster.isPrimary) {
-    require ('./jobs/jobs');
-}
-
 // Cluster Setup
 if (cluster.isPrimary) {
+
+    // Job System
+    import('./jobs/jobs.js');
+
     // Test Database Connection
-    db.query('SELECT 1 + 1 AS solution')
+    query('SELECT 1 + 1 AS solution')
         .then(() => {
-            logging.log.info(`Database Connection Successful`);
+            log.info(`Database Connection Successful`);
         })
         .catch((err: any) => {
-            logging.log.error(`Database Connection Failed\n${err}`);
+            log.error(`Database Connection Failed\n${err}`);
         });
     // Fork workers
-    logging.log.info(`Primary ${process.pid} is running on port ${port}`);
-    for (let i = 0; i < numCPUs; i++) {
+    log.info(`Primary ${process.pid} is running on port ${port}`);
+    for (let i = 0; i < os.availableParallelism(); i++) {
         cluster.fork();
     }
     // If a worker dies, create a new one to replace it
     cluster.on('exit', (worker: any) => {
-        logging.log.error(`worker ${worker.process.pid} died`);
+        log.error(`worker ${worker.process.pid} died`);
         cluster.fork();
     });
 } else {
+    // View Engine Setup
+    app.use(logger('dev'));
+    app.use(express.json());
+    app.use(express.urlencoded({
+        extended: false
+    }));
+    app.use(cookieParser());
+    app.use(compression());
+    app.disable('x-powered-by');
+    app.use(hpp());
+
+    // Session Setup
+    app.use(cookieSession({
+        name: 'session',
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        path: '/',
+        domain: '*.*',
+        keys: [process.env.SESSION_KEY || 'secret']
+    }));
+
+    // Trust Proxy Setup
+    app.set('trust proxy', 1);
+
+    // Sub Domain Setup and Static Files Setup
+    app.set('subdomain offset', 1);
+
+    // Rate Limiting Setup
+    const limiter = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 250,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: {
+            status: 429,
+            message: 'Too many requests, please try again later.'
+        }
+    });
+
+    app.use(limiter);
+
+    // Server Setup
+    app.set('port', port);
+
+    const server = http.createServer(app);
+
     server.listen(port, () => {
-        logging.log.info(`Worker ${process.pid} started`);
+        log.info(`Worker ${process.pid} started`);
     }).on('error', (error: any) => {
         if (error.syscall !== 'listen') {
             throw error;
@@ -116,11 +121,11 @@ if (cluster.isPrimary) {
 
         switch (error.code) {
             case 'EACCES':
-                logging.log.error(`${bind} requires elevated privileges`);
+                log.error(`${bind} requires elevated privileges`);
                 process.exit(1);
                 break;
             case 'EADDRINUSE':
-                logging.log.error(`${bind} is already in use`);
+                log.error(`${bind} is already in use`);
                 process.exit(1);
                 break;
             default:
@@ -160,7 +165,7 @@ app.use(function(req: any, res: any, next: any) {
     if (!domains || domains.length === 0) return next();
     domains.forEach(domain => {
         if (req.headers.host === domain) {
-            logging.log.info(`Redirecting ${req.headers.host} to /${domain}`);
+            log.info(`Redirecting ${req.headers.host} to /${domain}`);
             app.use(`/${domain}`, express.static(path.join(__dirname, `/${domain}`), {
                 maxAge: 2.88e+7
             }));
@@ -217,23 +222,23 @@ app.post('/login', (req: any, res: any) => {
             maxAge: 86400000,
             httpOnly: true
         });
-        db.query('SELECT * FROM accounts WHERE email = ? AND password = ?', [body.email.toLowerCase(), hash(body.password)])
+        query('SELECT * FROM accounts WHERE email = ? AND password = ?', [body.email.toLowerCase(), hash(body.password)])
             .then((results: any) => {
                 if (results.length > 0) {
                     // Check if the account needs a password reset
                     if (results[0].passwordreset == '1') return res.sendFile(path.join(__dirname, '/login/passwordreset.html'));
-                    db.query('UPDATE accounts SET lastlogin = ? WHERE email = ?', [new Date(), body.email.toLowerCase()])
+                    query('UPDATE accounts SET lastlogin = ? WHERE email = ?', [new Date(), body.email.toLowerCase()])
                         .then(() => {
                             createSession(req, res, body.email.toLowerCase());
                         })
                         .catch((err: any) => {
-                            logging.log.error(err);
+                            log.error(err);
                         });
                 } else {
                     res.redirect('/login');
                 }
             }).catch((err: any) => {
-                logging.log.error(err);
+                log.error(err);
                 res.redirect('/login');
             });
     } else {
@@ -275,15 +280,15 @@ app.post('/register', (req: any, res: any) => {
     // Check if the email is valid
     if (!validateEmail(body.email)) return res.redirect('/register');
     // Check if the email is already in use
-    db.query('SELECT * FROM accounts WHERE email = ?', [body.email.toLowerCase()])
+    query('SELECT * FROM accounts WHERE email = ?', [body.email.toLowerCase()])
         .then((results: any) => {
             if (results.length > 0) return res.redirect('/register');
         }).catch((err: any) => {
-            logging.log.error(err);
+            log.error(err);
         });
 
     // Create the account and send the user to the 2fa page
-    db.query('INSERT INTO accounts (email, password, lastlogin) VALUES (?, ?, ?)', [body.email.toLowerCase(), hash(body.password), new Date()])
+    query('INSERT INTO accounts (email, password, lastlogin) VALUES (?, ?, ?)', [body.email.toLowerCase(), hash(body.password), new Date()])
         .then(() => {
             res.cookie('email', body.email.toLowerCase(), {
                 maxAge: 86400000,
@@ -291,7 +296,7 @@ app.post('/register', (req: any, res: any) => {
             });
             createSession(req, res, body.email.toLowerCase());
         }).catch((err: any) => {
-            logging.log.error(err);
+            log.error(err);
             res.redirect('/register');
         });
 });
@@ -306,14 +311,14 @@ app.post('/2fa', (req: any, res: any) => {
     authentication.checkCode(req.cookies.email, body.code)
         .then((results: any) => {
             if (!results) return res.redirect('/login');
-            db.query('UPDATE sessions SET code = ? WHERE email = ?', ['0', req.cookies.email])
+            query('UPDATE sessions SET code = ? WHERE email = ?', ['0', req.cookies.email])
                 .then(() => {
                     res.redirect('/dashboard');
                 }).catch((err: any) => {
-                    logging.log.error(err);
+                    log.error(err);
                 });
         }).catch((err: any) => {
-            logging.log.error(err);
+            log.error(err);
             res.redirect('/login/2fa.html');
         });
 });
@@ -323,15 +328,15 @@ app.post('/api/reset-password', (req: any, res: any) => {
     const body = req.body;
     if (!body.temppassword || !body.password1 || !body.password2) return res.redirect('back');
     if (body.password1 !== body.password2) return res.redirect('back');
-    db.query('SELECT passwordreset FROM accounts WHERE email = ? AND password = ?', [req.cookies.email, hash(body.temppassword)])
+    query('SELECT passwordreset FROM accounts WHERE email = ? AND password = ?', [req.cookies.email, hash(body.temppassword)])
         .then((results: any) => {
             if (results[0].passwordreset === '1') {
-                db.query('UPDATE accounts SET password = ?, passwordreset = ? WHERE email = ?', [hash(body.password1), '0', req.cookies.email])
+                query('UPDATE accounts SET password = ?, passwordreset = ? WHERE email = ?', [hash(body.password1), '0', req.cookies.email])
                     .then(() => {
-                        logging.log.info(`[PASSWORD RESET] ${req.cookies.email}`);
+                        log.info(`[PASSWORD RESET] ${req.cookies.email}`);
                         createSession(req, res);
                 }).catch((err: any) => {
-                    logging.log.error(err);
+                    log.error(err);
                     res.status(500).send('Internal Server Error');
                 });
             } else {
@@ -339,7 +344,7 @@ app.post('/api/reset-password', (req: any, res: any) => {
             }
         }
     ).catch((err: any) => {
-        logging.log.error(err);
+        log.error(err);
         res.status(500).send('Internal Server Error');
     });
 });
@@ -392,32 +397,32 @@ app.post('/api/toggle-maintenance', (req: any, res: any) => {
             if (body.maintenance == 'true') {
                 settings.maintenance = true;
                 fs.writeFileSync(path.join(__dirname, 'settings.json'), JSON.stringify(settings, null, 4));
-                logging.log.warn('[Maintenance Mode] - Enabled');
+                log.warn('[Maintenance Mode] - Enabled');
             } else {
                 settings.maintenance = false;
                 fs.writeFileSync(path.join(__dirname, 'settings.json'), JSON.stringify(settings, null, 4));
-                logging.log.warn('[Maintenance Mode] - Disabled');
+                log.warn('[Maintenance Mode] - Disabled');
             }
             res.redirect('back');
         } else {
             res.redirect('/dashboard');
         }
     }).catch((err: any) => {
-        logging.log.error(err);
+        log.error(err);
     });
 });
 
 app.post('/logout', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    db.query('DELETE FROM sessions WHERE session = ?', [req.cookies.session])
+    query('DELETE FROM sessions WHERE session = ?', [req.cookies.session])
         .then(() => {
-            logging.log.error(`[LOGOUT] ${req.cookies.email}`);
+            log.error(`[LOGOUT] ${req.cookies.email}`);
             res.clearCookie('session');
             res.clearCookie('email');
             res.redirect('/login');
         })
         .catch((err: any) => {
-            logging.log.error(err);
+            log.error(err);
             res.redirect('/login');
         });
 });
@@ -428,7 +433,7 @@ app.use('/dashboard', express.static(path.join(__dirname, '/dashboard'), {
 
 app.get('/api/@me', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    db.query('SELECT email FROM accounts WHERE email = ?', [req.cookies.email])
+    query('SELECT email FROM accounts WHERE email = ?', [req.cookies.email])
         .then((results: any) => {
             if (results.length > 0) {
                 res.status(200).send(results[0]);
@@ -437,7 +442,7 @@ app.get('/api/@me', (req: any, res: any) => {
             }
         })
         .catch((err: any) => {
-            logging.log.error(err);
+            log.error(err);
             res.status(500).send('Internal Server Error');
         });
 });
@@ -471,18 +476,18 @@ app.get('/api/users', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {
-            db.query('SELECT * FROM accounts')
+            query('SELECT * FROM accounts')
                 .then((results: any) => {
                     res.send(results);
                 }).catch((err: any) => {
-                    logging.log.error(err);
+                    log.error(err);
                 });
         } else {
             res.redirect('back');
         }
     }
     ).catch((err: any) => {
-        logging.log.error(err);
+        log.error(err);
     });
 });
 
@@ -495,34 +500,34 @@ app.post('/api/create-account', (req: any, res: any) => {
     .then((results: any) => {
         if (results === 1) {
             // Check if account already exists by email
-            db.query('SELECT email FROM accounts WHERE email = ?', [body.email])
+            query('SELECT email FROM accounts WHERE email = ?', [body.email])
             .then((results: any) => {
                 if (results.length === 0) {
-                    const password = cryptojs.randomBytes(8).toString('hex');
-                    db.query('INSERT INTO accounts (email, password, passwordreset) VALUES (?, ?, ?)', [body.email, hash(password), '1'])
+                    const password = randomBytes(8);
+                    query('INSERT INTO accounts (email, password, passwordreset) VALUES (?, ?, ?)', [body.email, hash(password), '1'])
                     .then(() => {
-                        logging.log.info(`[CREATE ACCOUNT] ${body.email}`);
+                        log.info(`[CREATE ACCOUNT] ${body.email}`);
                         email.send(body.email, 'Account Created',
                         `Your account has been created. Your temporary password is ${password}. Please login to your account ${req.protocol}://${req.headers.host}/login and change your password.`);
                         res.redirect('back');
                     }).catch((err: any) => {
-                        logging.log.error(err);
+                        log.error(err);
                         res.status(500).send('Internal Server Error');
                     });
                 } else {
-                    logging.log.error(`[CREATE ACCOUNT] ${body.email} already exists`);
+                    log.error(`[CREATE ACCOUNT] ${body.email} already exists`);
                     res.redirect('back');
                 }
             }).catch((err: any) => {
-                logging.log.error(err);
+                log.error(err);
                 res.status(500).send('Internal Server Error');
             });
         } else {
-            logging.log.error(`[CREATE ACCOUNT] ${req.cookies.email} does not have access`);
+            log.error(`[CREATE ACCOUNT] ${req.cookies.email} does not have access`);
             res.redirect('back');
         }
     }).catch((err: any) => {
-        logging.log.error(err);
+        log.error(err);
         res.redirect('back');
     });
 });
@@ -535,14 +540,14 @@ app.post('/2fa/resend', (req: any, res: any) => {
 app.post('/reset-password', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
-    const session = cryptojs.randomBytes(64).toString('hex');
+    const session = randomBytes(64);
     const temp = shuffle(session, 8);
-    db.query('UPDATE accounts SET password = ?, passwordreset = ? WHERE email = ?', [hash(temp), '1', req.cookies.email])
+    query('UPDATE accounts SET password = ?, passwordreset = ? WHERE email = ?', [hash(temp), '1', req.cookies.email])
     .then(() => {
         email.send(req.cookies.email, 'Password Reset', `Your temporary password is: ${temp}`);
         res.sendFile(path.join(__dirname, 'login/passwordreset.html'));
     }).catch((err: any) => {
-        logging.log.error(err);
+        log.error(err);
         res.redirect('/login');
     });
 });
@@ -554,35 +559,6 @@ app.use(function(req: any, res: any, next: any) {
     if (req.subdomains.length > 0) return next();
     res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);
 });
-
-// Crypto Setup
-const cryptojs = require('node:crypto');
-
-function hash(password: string) {
-    const [hashedPassword, numberValue, sum] = getHash(password);
-    const hash = cryptojs.createHash('sha512')
-        .update(sum + hashedPassword)
-        .digest('hex');
-    const middle = Math.ceil(hash.length / 2);
-    const prefix = hash.slice(0, middle);
-    const suffix = hash.slice(middle);
-    const salt = cryptojs.createHash('sha512')
-        .update(prefix + numberValue)
-        .digest('hex')
-    const result = `L${salt}A${prefix}P${hashedPassword}Y${suffix}X`;
-    return result;
-}
-
-function getHash(password: string) {
-    const hash = cryptojs.createHash('sha512')
-        .update(password)
-        .digest('hex');
-    let numberValue = hash.replace(/[a-z]/g, '');
-    Array.from(numberValue);
-    numberValue = Object.assign([], numberValue);
-    const sum = numberValue.reduce((acc: string, curr: string, i: number) => acc + i, 0)
-    return [hash, numberValue, sum];
-}
 
 function shuffle(str: string, length: number) {
     length = length || 6;
@@ -600,31 +576,31 @@ function shuffle(str: string, length: number) {
 function createSession (req: any, res: any, _email?: string) {
     _email = _email || req.cookies.email;
     // Check if an account exists with the email
-    db.query('SELECT email FROM accounts WHERE email = ?', [_email]).then((results: any) => {
+    query('SELECT email FROM accounts WHERE email = ?', [_email]).then((results: any) => {
         if (results.length === 0) return res.redirect('/login');
-        logging.log.info(`[2FA SEND] ${_email}`);
+        log.info(`[2FA SEND] ${_email}`);
             // Delete any existing sessions
-        db.query('DELETE FROM sessions WHERE email = ?', [_email]).then(() => {
-            const session = cryptojs.randomBytes(64).toString('hex');
+        query('DELETE FROM sessions WHERE email = ?', [_email]).then(() => {
+            const session = randomBytes(64);
             const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
             const code = shuffle(session, 6);
-            db.query('INSERT INTO sessions (session, email, ip, code, created) VALUES (?, ?, ?, ?, ?)', [session, _email, ip, code, new Date()])
+            query('INSERT INTO sessions (session, email, ip, code, created) VALUES (?, ?, ?, ?, ?)', [session, _email, ip, code, new Date()])
                 .then(() => {
                     res.cookie('session', session, {
                         maxAge: 86400000,
                         httpOnly: true
                     });
-                    logging.log.info(`[LOGIN] ${_email}`);
-                    email.send(_email, 'Verification Code', `Your verification code is: ${code}`);
+                    log.info(`[LOGIN] ${_email}`);
+                    if (_email )email.send(_email, 'Verification Code', `Your verification code is: ${code}`);
                     res.sendFile(path.join(__dirname, 'login/2fa.html'));
                 }).catch((err: any) => {
-                    logging.log.error(err);
+                    log.error(err);
                 });
         }).catch((err: any) => {
-            logging.log.error(err);
+            log.error(err);
             res.status(500).send('Internal Server Error');
         });
     }).catch((err: any) => {
-        logging.log.error(err);
+        log.error(err);
     }); 
 }
