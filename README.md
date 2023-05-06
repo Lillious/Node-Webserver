@@ -23,6 +23,8 @@ NodeJS v20.0.0+
 - Login system and account registration
 - Web server settings and blazing-fast, lightweight performance
 - Sample database included
+- Control panel
+- User settings
 
 <br>
 
@@ -60,6 +62,12 @@ DATABASE_NAME
 EMAIL_USER
 EMAIL_PASSWORD
 EMAIL_SERVICE
+```
+
+<br>
+
+## Other Environment Variables
+```
 SESSION_KEY
 ```
 
@@ -147,7 +155,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 ```
-This code sets up a nodemailer transporter object that uses the email service specified in the EMAIL_USER environment variable. It also provides authentication information for the email account using the EMAIL_USER and EMAIL_PASS environment variables.
+This code sets up a nodemailer transporter object that uses the email service specified in the EMAIL_SERVICE environment variable. It also provides authentication information for the email account using the EMAIL_USER and EMAIL_PASS environment variables.
 
 Note that you will need to set the EMAIL_USER and EMAIL_PASS environment variables with the appropriate values for your email account.
 
