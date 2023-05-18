@@ -28,7 +28,6 @@ const __dirname = path.dirname(__filename);
 
 // Plugin System
 const data = require("./plugins.json");
-log.info(`Loading plugins...`);
 Object.keys(data).forEach((plugin: any) => {
     if (data[plugin].enabled) {
         import(`./plugins/${plugin}.js`).then(() => {
