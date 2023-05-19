@@ -459,7 +459,6 @@ app.get('/api/serverinfo', (req: any, res: any) => {
 
 app.get('/api/fileusage', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    const fs = require('node:fs');
     fs.statfs('/', (err: any, stats: any) => {
         const data = {
             total: stats.blocks * stats.bsize,

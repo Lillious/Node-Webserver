@@ -1,16 +1,16 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import * as log from '../utils/logging.js';
+import query from '../utils/database.js';
 
 const job = {
     // Clear inactive sessions from the database
     clearInactiveSessions: {
         name: 'Clear Inactive Sessions',
         enabled: true,
-        interval: 3.6e+6, // 1 hour
+        interval: 5000, // 1 hour
         start() {
-            const db = require('../utils/database');
-            db.query('DELETE FROM sessions WHERE created + interval 8 hour < now()');
+            query('DELETE FROM sessions WHERE created + interval 8 hour < now()');
         }
     },
     // Backup the source code
