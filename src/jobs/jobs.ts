@@ -2,6 +2,9 @@
 // @ts-nocheck
 import * as log from '../utils/logging.js';
 import query from '../utils/database.js';
+import fs from 'fs';
+import tar from 'tar';
+import path from 'path';
 
 const job = {
     // Clear inactive sessions from the database
@@ -20,7 +23,6 @@ const job = {
         interval: 3.6e+6, // 1 hour
         maxBackups: 5, // Keep the last 5 backups
         start() {
-            const fs = require('fs'), tar = require('tar'), path = require('path');
             const backupDir = path.join(__dirname, '..', '..', '..', 'backups');
             const backupFile = path.join(backupDir, 'temp.bak');
             if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir);
