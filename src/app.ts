@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
 import compression from 'compression';
-export const app = express();
+const app = express();
 import path from 'node:path';
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
@@ -26,17 +26,47 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Plugin System
-const data = require("./plugins.json");
-Object.keys(data).forEach((plugin: any) => {
-    if (data[plugin].enabled) {
-        import(`./plugins/${plugin}.js`).then(() => {
-            if (cluster.isPrimary) log.info(`Loading plugin: ${plugin}`);
-        }).catch((err: any) => {
-            log.error(`Failed to load plugin: ${plugin}\n${err}`);
-        });
+// Plugins
+import './plugins/security.js';
+import filter from './plugins/security.js';
+
+// View Engine Setup
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({
+    extended: false
+}));
+app.use(cookieParser());
+app.use(compression());
+app.disable('x-powered-by');
+app.use(hpp());
+// Session Setup
+app.use(cookieSession({
+    name: 'session',
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    path: '/',
+    domain: '*.*',
+    keys: [process.env.SESSION_KEY || 'secret']
+}));
+// Trust Proxy Setup
+app.set('trust proxy', 1);
+// Sub Domain Setup and Static Files Setup
+app.set('subdomain offset', 1);
+// Rate Limiting Setup
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 250,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        status: 429,
+        message: 'Too many requests, please try again later.'
     }
 });
+app.use(limiter);
+// Server Setup
+app.set('port', port);
+const server = http.createServer(app);
 
 // Cluster Setup
 if (cluster.isPrimary) {
@@ -63,51 +93,6 @@ if (cluster.isPrimary) {
         cluster.fork();
     });
 } else {
-    // View Engine Setup
-    app.use(logger('dev'));
-    app.use(express.json());
-    app.use(express.urlencoded({
-        extended: false
-    }));
-    app.use(cookieParser());
-    app.use(compression());
-    app.disable('x-powered-by');
-    app.use(hpp());
-
-    // Session Setup
-    app.use(cookieSession({
-        name: 'session',
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        path: '/',
-        domain: '*.*',
-        keys: [process.env.SESSION_KEY || 'secret']
-    }));
-
-    // Trust Proxy Setup
-    app.set('trust proxy', 1);
-
-    // Sub Domain Setup and Static Files Setup
-    app.set('subdomain offset', 1);
-
-    // Rate Limiting Setup
-    const limiter = rateLimit({
-        windowMs: 15 * 60 * 1000,
-        max: 250,
-        standardHeaders: true,
-        legacyHeaders: false,
-        message: {
-            status: 429,
-            message: 'Too many requests, please try again later.'
-        }
-    });
-
-    app.use(limiter);
-
-    // Server Setup
-    app.set('port', port);
-
-    const server = http.createServer(app);
-
     server.listen(port, () => {
         log.info(`Worker ${process.pid} started`);
     }).on('error', (error: any) => {
@@ -141,6 +126,14 @@ function validateEmail(email: string) {
     return false;
 }
 
+// Filter 
+app.use(function(req: any, res: any, next: any) {
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-access-token');
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    filter(req, res, next, ip);
+});
+
 // Check if the url has repeating slashes at the end of the domain
 app.use(function(req: any, res: any, next: any) {
     let url = req.url;
@@ -156,7 +149,6 @@ app.use(function(req: any, res: any, next: any) {
 
 
 // Support for multiple domains on one server
-
 const domains: string[] = [];
 
 app.use(function(req: any, res: any, next: any) {

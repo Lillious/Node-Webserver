@@ -1,4 +1,3 @@
-import {app} from '../app.js';
 import * as log from '../utils/logging.js';
 import query from '../utils/database.js';
 import {service} from '../utils/ipservice.js';
@@ -72,38 +71,36 @@ query('SELECT * FROM allowed_ips')
         log.error(err);
     });
 
-app.use(function(req: any, res: any, next: any) {
-    requests++;
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-access-token');
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    // Check if null routing is enabled
-    if (NullRoutingService.isEnabled()) {
-        // Check if the IP is allowed and return if not
-        if (!w_ips.includes(ip)) return;
-    } else {
-        // Check if the IP is blocked
-        if (b_ips.includes(ip)) return;
-        const found = paths.some(element => {
-            if (req.url.includes(element)) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-        if (found) {
-            if (b_ips.includes(ip) || w_ips.includes(ip)) return; // IP is already blocked or is whitelisted. Ignore
-            query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip])
-                .then(() => {
-                    log.error(`[BLOCKED] - ${ip} - ${req.url}`);
-                    service.blacklistAdd(ip);
-                })
-                .catch((err: any) => {
-                    log.error(err);
-                });
-            return;
+export default function filter(req: any, res: any, next: any, ip: any): void {
+        log.info(`[REQUEST] - ${req.url}`);
+        requests++;
+        // Check if null routing is enabled
+        if (NullRoutingService.isEnabled()) {
+            // Check if the IP is allowed and return if not
+            if (!w_ips.includes(ip)) return;
         } else {
-            next();
+            // Check if the IP is blocked
+            if (b_ips.includes(ip)) return;
+            const found = paths.some(element => {
+                if (req.url.includes(element)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+            if (found) {
+                if (b_ips.includes(ip) || w_ips.includes(ip)) return; // IP is already blocked or is whitelisted. Ignore
+                query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip])
+                    .then(() => {
+                        log.error(`[BLOCKED] - ${ip} - ${req.url}`);
+                        service.blacklistAdd(ip);
+                    })
+                    .catch((err: any) => {
+                        log.error(err);
+                    });
+                return;
+            } else {
+                next();
+            }
         }
-    }
-});
+}
