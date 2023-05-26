@@ -72,7 +72,6 @@ query('SELECT * FROM allowed_ips')
     });
 
 export default function filter(req: any, res: any, next: any, ip: any): void {
-        log.info(`[REQUEST] - ${req.url}`);
         requests++;
         // Check if null routing is enabled
         if (NullRoutingService.isEnabled()) {

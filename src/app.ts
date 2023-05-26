@@ -27,7 +27,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Plugins
-import './plugins/security.js';
 import filter from './plugins/security.js';
 
 // View Engine Setup
