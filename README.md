@@ -1,118 +1,151 @@
-# Node-Webserver
-A secure, lightweight and easy-to-use webserver powered by ExpressJS
+## Node Webserver
+Experience the power of ExpressJS with this secure and easy-to-use web server. Designed to be lightweight and efficient, it delivers lightning-fast performance and unparalleled security.
 
-# Features
-- Support for subdomains
-- Cluster module
-- Support for multiple file types (adjustable in package.json)
-- Code minification
-- Request/File Caching
-- Express file compression
-- Blazingly fast and lightweight
-- Bun runtime compatibility
-- Secure Database Connection Utility
-- Database Connection Pooling
-- Database Query Builder
-- Password Hashing & Salting
-- Plugin System
-- Security System
-- Login System
-- Account Registration
-- Web Server Settings
-- Sample Database
-- Maintenance Mode Banner
-- Multidomain Support
+<br>
 
-# Security Features
-- CORS
-- CSRF Protection
-- XSS Protection
-- HSTS
-- Content Security Policy
-- Rate Limiting
-- HTTP Parameter Pollution Protection
-- SQL Injection Protection
-- Authenticated / Unauthenticated Routes
-- Database SSL Support
-- Robot.txt Support
-- Anti-Scrape
-- Automated Attack Detection
-- Bot Detection
-- Token stealing prevention
-- Email based 2FA /w resend option
-- Email based password Reset
-- Permission System
-- Job Scheduler System
-- Null Routing (DDoS mitigation)
-- IP Blocking
-- IP Whitelist
+## Supported Node Version
 
-# Scheduled Jobs
-- Backups
+```
+NodeJS v20.2.0+
+```
+
+<br>
+
+## Features
+- Support for subdomains and multidomains
+- Cluster module for efficient performance
+- Flexible support for multiple file types
+- Code minification and Express file compression
+- Request and file caching for faster load times
+- Secure database connection utility with pooling and query builder
+- Password hashing and salting for enhanced security
+- Plugin system and maintenance mode banner
+- Login system and account registration
+- Web server settings and blazing-fast, lightweight performance
+- Sample database included
+- Control panel
+- User settings
+
+<br>
+
+## Security Features
+- CORS, CSRF, XSS, SQL injection protection
+- HSTS, content security policy, rate limiting
+- HTTP parameter pollution protection, null routing for DDoS mitigation
+- Anti-scrape, bot detection, IP blocking, IP whitelisting
+- Token stealing prevention, email-based 2FA and password reset
+- Authenticated/unauthenticated routes, permission system
+- Job scheduler system, database SSL support, robot.txt support
+- Automated attack detection
+
+<br>
+
+## Scheduled Jobs
+- Configurable Backups
 - Clear Expired Login Sessions
 
-# Experimental Features
-- Control Panel (WIP)
+<br>
 
-# Node Version Supported Version
-NodeJS v20.2.0
-
-# Used Environment Variables
+## Database Environment Variables
 ```
 DATABASE_HOST
 DATABASE_USER
 DATABASE_PASSWORD
 DATABASE_PORT
 DATABASE_NAME
-EMAIL_HOST
-EMAIL_PORT
-EMAIL_SECURE
+```
+
+<br>
+
+## Email Service Environment Variables
+```
 EMAIL_USER
 EMAIL_PASSWORD
 EMAIL_SERVICE
+```
+
+<br>
+
+## Other Environment Variables
+```
 SESSION_KEY
 ```
 
-# Creating a subdomain
-- Create a folder inside /src
-Example: ``mynewsubdomain``
-- Create routing for the newly created subdomain in app.ts under the section "Sub Domain Setup and Static Files Setup"
+<br>
 
-Example:
+## Creating a subdomain
+Location: src/app.ts
+
+To create a subdomain, you need to create a new folder in the `/src` directory and then set up routing for the subdomain in the `app.ts` file.
+Add a new line of code to the section to set up routing for your new subdomain. The code should look like this:
 
 ```js
 app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'))));
 ```
 
-# Adding additional domains
-(Located in app.ts)
+<br>
 
-Update the following array with the corresponding domains that you'd like to host.
+## Adding additional domains
+Location: src/app.ts
+
+The following code defines an array of domains that can be hosted by the application. To add a new domain, the `domains` array must be updated with the new domain's name. Additionally, a folder with the same name as the domain must be created in the `src/` directory, and an `index.html` file must be placed in the root directory of the new folder.
+
 ```js
-const domains: string[''] = [];
+const domains: string['mydomain.com, example.com'] = [];
 ```
-Once the domain is added to the array, create a folder in src/ with the name matching the domain.
-An index.html file is required at the root directory.
-
-Example:
-```js
-const domains: string['mydomain.com'] = [];
 ```
-Folder: src/mydomain.com
-
-
-# Using the query builder
-```js
-db.query('SELECT someRow FROM someTable WHERE someValue = ?', [someValue]).then((results) => {
-    // Do something with results
-}).catch(err) {
-    logging.log.error(err);
-};
-
+├── src/
+│   ├── mydomain.com/
+│   │   └── index.html
+│   └── example.com/
+│       └── index.html
 ```
 
-# Creating an email connection
-(Located in utils/mailer.ts)
+<br>
+
+## Function: query(sql: string, values?: any): Promise<any>
+
+This function executes a SQL query on a database and returns a Promise that resolves to the query result.
+
+### Parameters
+
+- `sql` (string): The SQL query to execute.
+- `values` (optional): An array of values to substitute into the query, if any. If not specified, no substitution is performed.
+
+### Returns
+
+- A Promise that resolves to the result of the query.
+
+### Usage
+
+To use this function, import it and call it with the SQL query as the first argument and an optional array of values as the second argument:
+
+```js
+import query from './query';
+
+// Execute a simple query with no parameters
+query('SELECT * FROM users')
+  .then((result) => {
+    console.log(result);
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+
+// Execute a parameterized query with values
+query('SELECT * FROM users WHERE id = ?', [123])
+  .then((result) => {
+    console.log(result);
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+```
+<br>
+<br>
+
+## Creating an email connection
+Location: src/utils/mailer.ts
 ```js
 const transporter = nodemailer.createTransport({
     service: process.env.EMAIL_USER,
@@ -122,15 +155,25 @@ const transporter = nodemailer.createTransport({
     }
 });
 ```
+This code sets up a nodemailer transporter object that uses the email service specified in the EMAIL_SERVICE environment variable. It also provides authentication information for the email account using the EMAIL_USER and EMAIL_PASS environment variables.
 
-# Sending an email
+Note that you will need to set the EMAIL_USER and EMAIL_PASS environment variables with the appropriate values for your email account.
+
+<br>
+
+## Sending an email
+To send an email using `nodemailer`, you need to use the `email.send()` method provided in the `mailer.ts` file.
+
+### Usage
 ```js
 const email = require('./utils/mailer');
 email.send(email: string, subject: string, message: string);
 ```
 
-# Creating a scheduled job
-(Located in src/jobs/jobs.ts)
+<br>
+
+## Creating a scheduled job
+Location: src/jobs/jobs.ts
 ```js
 myFirstJob: {
     name: string,
@@ -141,16 +184,4 @@ myFirstJob: {
     }
 }
 ```
-
-# Whitelisting / Blacklisting an IP
-```js
-const ips = require('../utils/ipservice');
-// Add to Blacklist
-ips.service.blacklistAdd(ip: string);
-// List Blacklisted IPs
-const b_ips = ips.service.getBlacklistedIPs();
-// Add to Whitelist
-ips.service.whitelistAdd(ip: string);
-// List Whitelisted IPs
-const w_ips = ips.service.getWhitelistedIPs();
-```
+Here, myFirstJob is the name of the job object that you want to create. You can replace it with a name of your choice. The name property is a string that describes the job. The enabled property is a boolean that specifies whether the job is enabled or disabled. The interval property is a number that represents the time interval at which the job will execute. The start() function is the code that will be executed when the job is started.
