@@ -6,7 +6,7 @@ Experience the power of ExpressJS with this secure and easy-to-use web server. D
 ## Supported Node Version
 
 ```
-NodeJS v20.0.0+
+NodeJS v20.2.0+
 ```
 
 <br>
