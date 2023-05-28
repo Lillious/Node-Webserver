@@ -54,8 +54,8 @@ A secure, lightweight and easy-to-use webserver powered by ExpressJS
 # Experimental Features
 - Control Panel (WIP)
 
-# Node Version Requirement
-NodeJS v19.7.0 +
+# Node Version Supported Version
+NodeJS v20.2.0
 
 # Used Environment Variables
 ```
