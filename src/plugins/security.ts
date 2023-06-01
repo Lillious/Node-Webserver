@@ -89,7 +89,7 @@ export default function filter(req: any, res: any, next: any, ip: any): void {
             });
             if (found) {
                 if (b_ips.includes(ip) || w_ips.includes(ip)) return; // IP is already blocked or is whitelisted. Ignore
-                query('INSERT INTO blocked_ips (ip) VALUES (?)', [ip])
+                query('INSERT IGNORE INTO blocked_ips (ip) VALUES (?)', [ip])
                     .then(() => {
                         log.error(`[BLOCKED] - ${ip} - ${req.url}`);
                         service.blacklistAdd(ip);
