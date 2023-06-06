@@ -131,6 +131,10 @@ app.use(function(req: any, res: any, next: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     filter(req, res, next, ip);
+    // For some reason, the filter function is not working properly on localhost, so I am using this as a temporary fix
+    if (process.env.NODE_ENV === 'development') {
+        next();
+    }
 });
 
 // Check if the url has repeating slashes at the end of the domain
@@ -339,6 +343,11 @@ app.post('/api/reset-password', (req: any, res: any) => {
     });
 });
 
+app.post('/2fa/resend', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    createSession(req, res, req.cookies.email);
+});
+
 /* Start Secure Routing */
 /* Routes that require authentication */
 
@@ -521,11 +530,6 @@ app.post('/api/create-account', (req: any, res: any) => {
     });
 });
 
-app.post('/2fa/resend', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    createSession(req, res, req.cookies.email);
-});
-
 app.post('/reset-password', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
@@ -567,29 +571,30 @@ function createSession (req: any, res: any, _email?: string) {
     // Check if an account exists with the email
     query('SELECT email FROM accounts WHERE email = ?', [_email]).then((results: any) => {
         if (results.length === 0) return res.redirect('/login');
-        log.info(`[2FA SEND] ${_email}`);
-            // Delete any existing sessions
-        query('DELETE FROM sessions WHERE email = ?', [_email]).then(() => {
-            const session = randomBytes(64);
-            const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-            const code = shuffle(session, 6);
-            query('INSERT INTO sessions (session, email, ip, code, created) VALUES (?, ?, ?, ?, ?)', [session, _email, ip, code, new Date()])
-                .then(() => {
-                    res.cookie('session', session, {
-                        maxAge: 86400000,
-                        httpOnly: true
+        // Delete any existing sessions
+        query('DELETE FROM sessions WHERE email = ?', [_email])
+            .then(() => {
+                const session = randomBytes(64);
+                const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+                const code = shuffle(session, 6);
+                query('INSERT INTO sessions (session, email, ip, code, created) VALUES (?, ?, ?, ?, ?)', [session, _email, ip, code, new Date()])
+                    .then(() => {
+                        res.cookie('session', session, {
+                            maxAge: 86400000,
+                            httpOnly: true
+                        });
+                        log.info(`[LOGIN] ${_email}`);
+                        if (_email )email.send(_email, 'Verification Code', `Your verification code is: ${code}`);
+                        res.redirect('/login/2fa.html');
+                    }).catch((err: any) => {
+                        log.error(err);
                     });
-                    log.info(`[LOGIN] ${_email}`);
-                    if (_email )email.send(_email, 'Verification Code', `Your verification code is: ${code}`);
-                    res.sendFile(path.join(__dirname, 'login/2fa.html'));
-                }).catch((err: any) => {
-                    log.error(err);
-                });
-        }).catch((err: any) => {
-            log.error(err);
-            res.status(500).send('Internal Server Error');
-        });
+            }).catch((err: any) => {
+                log.error(err);
+                res.status(500).send('Internal Server Error');
+            });
     }).catch((err: any) => {
         log.error(err);
+        res.status(500).send('Internal Server Error');
     }); 
 }
