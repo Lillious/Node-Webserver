@@ -69,6 +69,8 @@ EMAIL_SERVICE
 ## Other Environment Variables
 ```
 SESSION_KEY
+NODE_ENV=development (required for local testing)
+NODE_ENV=production (production only / external)
 ```
 
 <br>
