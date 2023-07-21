@@ -4,8 +4,9 @@
   "description": "An easy-to-use webserver powered by Node and ExpressJS",
   "main": "dist/src/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm update && npm fund && npm run build && node dist/src/app.js",
+    "install": "npm i",
+    "update": "npm update && npm fund && npm audit fix",
+    "start": "npm run build && node dist/src/app.js",
     "clean": "rimraf dist/",
     "build": "npm run clean && npm run lint && tsc && npm run copy-files && npm run minify",
     "copy-files": "npm run copy-web && npm run copy-media && npm run copy-images && npm run copy-certificates && npm run copy-misc",
