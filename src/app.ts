@@ -179,6 +179,11 @@ app.use(function(req: any, res: any, next: any) {
 /* Start Unsecure Routing */
 /* Routes that do not require authentication */
 
+// Files
+app.use(vhost('files.*.*', express.static(path.join(__dirname, '/files'), {
+    maxAge: 2.88e+7
+})));
+
 // Login Page
 app.use('/login', express.static(path.join(__dirname, '/login'), {
     maxAge: 2.88e+7
