@@ -553,9 +553,7 @@ app.post('/reset-password', (req: any, res: any) => {
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any, next: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    // Check if it is a subdomain
-    if (req.subdomains.length > 0) return next();
-    res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);
+    res.status(404).sendFile(path.join(__dirname, '/errors/404.html'));
 });
 
 function shuffle(str: string, length: number) {
