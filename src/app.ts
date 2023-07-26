@@ -28,6 +28,7 @@ const __dirname = path.dirname(__filename);
 
 // Plugins
 import filter from './plugins/security.js';
+import redirect from './plugins/redirect.js';
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -131,10 +132,15 @@ app.use(function(req: any, res: any, next: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     filter(req, res, next, ip);
-    // For some reason, the filter function is not working properly on localhost, so I am using this as a temporary fix
     if (process.env.NODE_ENV === 'development') {
         next();
     }
+});
+
+// Redirects
+app.use(function(req: any, res: any, next: any) {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    redirect(req, res, next);
 });
 
 // Check if the url has repeating slashes at the end of the domain
@@ -551,7 +557,7 @@ app.post('/reset-password', (req: any, res: any) => {
 });
 
 // Redirect to root domain if route is not found
-app.use(function(req: any, res: any, next: any) {
+app.use(function(req: any, res: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     res.status(404).sendFile(path.join(__dirname, '/errors/404.html'));
 });
