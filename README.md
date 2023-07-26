@@ -187,3 +187,15 @@ myFirstJob: {
 }
 ```
 Here, myFirstJob is the name of the job object that you want to create. You can replace it with a name of your choice. The name property is a string that describes the job. The enabled property is a boolean that specifies whether the job is enabled or disabled. The interval property is a number that represents the time interval at which the job will execute. The start() function is the code that will be executed when the job is started.
+
+<br>
+
+## Redirects
+Location src/plugins/redirect.ts
+```js
+// Add redirect rules in the section below
+// http and https protocols are dynamic so the domain and path is the only information needed
+const redirects = [
+    ["localhost/test/", "localhost/login/"],
+];
+```
