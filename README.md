@@ -75,7 +75,7 @@ NODE_ENV=production (production only / external)
 
 <br>
 
-## Creating a subdomain
+## Creating a subdomain (DNS entry required)
 Location: src/app.ts
 
 To create a subdomain, you need to create a new folder in the `/src` directory and then set up routing for the subdomain in the `app.ts` file.
@@ -168,7 +168,7 @@ To send an email using `nodemailer`, you need to use the `email.send()` method p
 
 ### Usage
 ```js
-const email = require('./utils/mailer');
+import * as email from './utils/mailer.js';
 email.send(email: string, subject: string, message: string);
 ```
 
@@ -191,7 +191,7 @@ Here, myFirstJob is the name of the job object that you want to create. You can 
 <br>
 
 ## Redirects
-Location src/plugins/redirect.ts
+Location: src/plugins/redirect.ts
 ```js
 // Add redirect rules in the section below
 // http and https protocols are dynamic so the domain and path is the only information needed
@@ -199,3 +199,10 @@ const redirects = [
     ["localhost/test/", "localhost/login/"],
 ];
 ```
+
+<br>
+
+## Files
+Location: src/files
+You can choose to add publicly accessible files to the location listed above for them to be automatically copied over to dist/src/files during the deployment.
+Files can be accessed at files.yourdomain.com or domain.com/files
