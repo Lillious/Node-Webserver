@@ -190,6 +190,11 @@ app.use(vhost('files.*.*', express.static(path.join(__dirname, '/files'), {
     maxAge: 2.88e+7
 })));
 
+app.use('/files', express.static(path.join(__dirname, '/files'), {
+    maxAge: 2.88e+7
+}));
+
+
 // Login Page
 app.use('/login', express.static(path.join(__dirname, '/login'), {
     maxAge: 2.88e+7
