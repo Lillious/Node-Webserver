@@ -7,11 +7,11 @@
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #1ed760;
+    background: #1EB980;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #1ed760;
+    background: #1EB980;
 }
 
 * {
@@ -21,22 +21,17 @@
 input[type=text] {
     border: none;
     text-indent: 5px;
-    background: #181818;
-    border-radius: 2px;
 }
 
 input:not([type=checkbox], [type=button]) {
-    outline-style : solid;
-    outline-color: transparent;
-    outline-width: 2px;
+    outline: none;
     border: none;
+    border-bottom: 1px solid #727272;
     height: 30px;
     width: 200px;
-    color: #fff;
+    color: #1EB980;
     background: transparent;
     text-indent: 5px;
-    border-radius: 2px;
-    box-shadow: #131313 2px 2px 5px 1px;
     transition: 0.2s;
 }
 
@@ -46,17 +41,13 @@ input[type=checkbox] {
 }
 
 input[type=email]:focus, input[type=password]:focus, input[type=text]:focus {
-    outline-style: solid;
-    outline-color: #1ed760;
-    outline-width: 2px;
     transition: 0.2s;
+    border-bottom: 1px solid #1EB980;
 }
 
 input[type=email]:hover:not(:focus), input[type=password]:hover:not(:focus), input[type=text]:hover:not(:focus) {
-    outline-style: solid;
-    outline-color: rgba(255, 255, 255, 0.212);
-    outline-width: 2px;
     transition: 0.2s;
+    border-bottom: 1px solid #1EB980;
 }
 
 ::placeholder {
@@ -65,33 +56,28 @@ input[type=email]:hover:not(:focus), input[type=password]:hover:not(:focus), inp
 }
 
 button {
-    border: none;
     background: transparent;
-    color: #ffffff;
-    border-radius: 2px;
+    color: #1EB980;
     transition: 0.2s;
     padding: 8px;
-    min-width: 100px;
-    box-shadow: #131313 2px 2px 5px 1px;
-    border: none;
+    min-width: 150px;
+    border: 1px solid #1EB980;
 }
 
 button:hover {
-    background: #11c04e;
     transition: 0.2s;
     cursor: pointer;
+    background: #1EB980;
+    color: #ffffff;
 }
 
 body {
     margin: 25px;
     font-family: Arial, Helvetica, sans-serif;
-    background: rgb(33,33,33);
-    background: linear-gradient(180deg, rgba(33,33,33,1) 0%, rgba(18,18,18,1) 100%);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+    background: #1d1d24;
     -webkit-user-select: none;
     user-select: none;
-    color: #ffffff;
+    color: #1EB980;
 }
 
 a {
@@ -101,7 +87,7 @@ a {
 }
 
 hr {
-    border: 1px solid #282828;
+    border: 1px solid #727272;
 }
 
 a:hover {
@@ -133,18 +119,19 @@ a:hover {
     display: inline-flex;
     font-size: 28px;
     font-weight: bold;
-    color: #1ed760;
+    color: #1EB980;
 }
 
 #navcontainer {
     position: fixed;
     top: 0;
     left: 0;
-    width: 250px;
+    width: 300px;
     height: 100%;
     background: transparent;
-    border-radius: 5px;
-    box-shadow: 0 0 15px 2px #0e0e0e;
+    background: #1a1a1e;
+    border: none;
+    border-right: 1px solid #1EB980;
 }
 
 #navcontainer #nav #navlinks {
@@ -208,10 +195,13 @@ a:hover {
     top: 100px;
     width: 175px;
     height: 200px;
-    border-radius: 5px;
-    background: #282828;
+    border-radius: 2px;
+    background: #1a1a1e;
+    border: 1px solid #005D57;
     display: none;
     z-index: 1000;
+    padding: 5px;
+    box-shadow: 0 0 15px 2px #0e0e0e;
 }
 
 #profile #picture {
@@ -229,14 +219,9 @@ a:hover {
     transform: scale(1.4, .7);
 }
 
-#card {
-    padding: 5px;
-    box-shadow: 0 0 15px 2px #0e0e0e;
-}
-
 #card input {
     width: 100%;
-    color: #ffffff;
+    color: #a5a5a5;
     background: transparent;
     border-radius: 2px;
     height: 40px;
@@ -245,38 +230,52 @@ a:hover {
     font-weight: 400;
     transition: 0.2s;
     border: none;
-    border-bottom: 1px solid #474747;
+    border-bottom: 1px solid transparent;
 }
 
 #card input:hover {
-    background: #313131;
+    color: #1EB980;
+    border: none;
+    border-bottom: 1px solid #727272;
     transition: 0.2s;
 }
 
 #info-panel {
     top: 100px;
-    right: 25px;
+    left: 25px;
     width: 300px;
     position: fixed;
-    box-shadow: 0 0 15px 2px #0e0e0e;
     line-height: 10px;
     padding: 10px;
+    background: #1a1a1e;
+    border: solid 1px #005D57;
+    border-radius: 2px;
 }
 
 #info-panel p {
     padding: 10px;
-    color: #afafaf;
+    color: #a5a5a5;
     font-size: 12px;
     font-weight: 400;
     -webkit-user-select: text;
     user-select: text;
 }
 
+p {
+    color: #a5a5a5;
+}
+
+h1 {
+    font-weight: normal;
+    font-size: 24px;
+    letter-spacing: 3px;
+}
+
 #info-panel h1 {
     padding: 10px;
     padding-bottom: 0px;
     font-size: 18px;
-    color: #c9c9c9;
+    color: #1EB980;
 }
 
 #file-size-bar-container {
@@ -295,13 +294,13 @@ a:hover {
     top: 0;
     height: 100%;
     width: 0%;
-    background: #1ed760;
+    background: #1EB980;
 }
 
 #title {
     float: left;
     font-size: 14px;
-    color: #1ed760;
+    color: #1EB980;
 }
 
 #login-form, #register-form {
@@ -309,14 +308,28 @@ a:hover {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    margin-top: 150px;
+    top: 50%;
+    left: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 450px;
+    height: 550px;
+    border: solid 1px #1EB980;
+    border-radius: 2px;
+}
+
+#login-form .link {
+    position: absolute;
+    bottom: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
 }
 
 #error-page {
     display: flex;
     font-size: 28px;
-    color: #1ed760;
+    color: #1EB980;
     font-weight: bold;
     flex-direction: column;
     align-items: center;
@@ -331,7 +344,9 @@ a:hover {
 }
 
 .link {
+    font-size: 14px;
     color: #1e77d7;
+    font-style: italic;
 }
 
 .link:hover {
@@ -344,7 +359,7 @@ a:hover {
     top: 20%;
     left: 0;
     right: 0;
-    color: #1ed760;
+    color: #1EB980;
 }
 
 #register {
@@ -357,7 +372,7 @@ a:hover {
     left: 0;
     right: 0;
     height: 50px;
-    background: #1ed760;
+    background: #1EB980;
     color: #000;
     font-weight: bold;
     font-size: .6rem;

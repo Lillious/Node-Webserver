@@ -36,13 +36,23 @@
                     if (data === true) {
                         if (maintenance) maintenance.style.display = 'flex';
                         if (maintenance) maintenance.innerHTML = 'Website is currently under maintenance. Performace may be affected.';
-                        if (maintenanceButton) maintenanceButton.textContent = 'Disable';
-                        if (maintenanceModeText) maintenanceModeText.innerHTML = 'Maintenance Mode: Enabled';
+                        if (maintenanceButton) {
+                            maintenanceButton.textContent = 'DISABLE';
+                            maintenanceButton.style.color = 'tomato';
+                            maintenanceButton.style.border = '1px solid tomato';
+                            maintenanceButton.addEventListener('mouseover', () => {
+                                maintenanceButton.style.backgroundColor = 'tomato';
+                                maintenanceButton.style.color = '#fff';
+                            });
+                            maintenanceButton.addEventListener('mouseout', () => {
+                                maintenanceButton.style.backgroundColor = 'transparent';
+                                maintenanceButton.style.color = 'tomato';
+                            });
+                        }
                         if (maintenanceMode) (<HTMLInputElement>maintenanceMode as HTMLInputElement).value = 'false';
                     } else {
                         if (maintenance) maintenance.style.display = 'none';
-                        if (maintenanceButton) maintenanceButton.textContent = 'Enable';
-                        if (maintenanceModeText) maintenanceModeText.innerHTML = 'Maintenance Mode: Disabled';
+                        if (maintenanceButton) maintenanceButton.textContent = 'ENABLE';
                         if (maintenanceMode) (<HTMLInputElement>maintenanceMode as HTMLInputElement).value = 'true';
                     }
                 });
