@@ -27,22 +27,22 @@
             <input type="button" id="home" value="Home"/>
         </div>
         <div id="info-panel">
-            <h1 id="create-account">Create Account</h1>
+            <h1 id="create-account">CREATE ACCOUNT</h1>
             <form action="/api/create-account" method="post">
                 <br>
                 <input type="email" name="email" id="email" placeholder="example@domain.com" required autocomplete="off" spellcheck="false">
                 <br><br><br>
-                <button type="submit" id="create-account-button">Create</button>
+                <button type="submit" id="create-account-button">SUBMIT</button>
             </form>
             <hr>
-            <h1 id="toggle-maintenance"></h1>
+            <h1 id="toggle-maintenance">MAINTENANCE</h1>
             <form action="/api/toggle-maintenance" method="post">
                 <input hidden type="text" name="maintenance" id="maintenance-mode">
                 <br>
-                <button type="submit" id="toggle-maintenance-button">Enable</button>
+                <button type="submit" id="toggle-maintenance-button">ENABLE</button>
             </form>
             <hr>
-            <h1 id="user-list">Users</h1>
+            <h1 id="user-list">USERS</h1>
             <div id="user-list-container"></div>
         </div>
     </body>
