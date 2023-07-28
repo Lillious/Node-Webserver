@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>cPanel</title>
+        <!-- Preload css -->
+        <link rel="preload" href="../css/style.css" as="style" onload="this.rel='stylesheet'">
+        <link rel="stylesheet" href="../css/style.css">
+        <!-- Preload js -->
+        <script rel="preload" src="../js/serverinfo.js" as="script" onload="this.rel='script'"></script>
+        <script rel="preload" src="../js/logout.js" as="script" onload="this.rel='script'"></script>
+        <script defer async src="../js/serverinfo.js"></script>
+        <script defer async src="../js/logout.js"></script>
+    </head>
+    <body>
+        <nav>
+            <div id="logo">cPanel</div>
+            <div id="logout">Logout</div>
+        </nav>
+        <div id="container">
+            <div id="side-menu-right">
+                <div class="category-title">
+                    <p>General Information</p>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-title">
+                        <p>Current User</p>
+                    </div>
+                    <div class="list-item-content">
+                        <p id="display_name">Loading...</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-title">
+                        <p>Primary Domain</p>
+                    </div>
+                    <div class="list-item-content">
+                        <p id="primary-domain-text">Loading...</p>
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-item-title">
+                        <p>Shared IP Address</p>
+                    </div>
+                    <div class="list-item-content">
+                        <p id="server-ip-text">Loading...</p>
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-item-title">
+                        <p>Home Directory</p>
+                    </div>
+                    <div class="list-item-content">
+                        <p id="home-directory-text">Loading...</p>
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-item-title">
+                        <p>Disk Usage</p>
+                    </div>
+                    <div class="list-item-content">
+                        <p id="file-size">Loading...</p>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" id="file-size-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="category-container">
+                <div class="category">
+                    <div class="category-title">
+                        <p>Domains</p>
+                    </div>
+                    <div class="category-content">
+                        <div class="item">Redirects</div>
+                    </div>
+                </div>
+
+                <div class="category">
+                    <div class="category-title">
+                        <p>Security</p>
+                    </div>
+                    <div class="category-content">
+                        <div class="item">Security Definitions</div>
+                        <div class="item">IP Blocker</div>
+                        <div class="item">SSH Access</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category">
+                <div class="category-title">
+                    <p>Advanced</p>
+                </div>
+                <div class="category-content">
+                    <div class="item" onclick="location.href='./errors'">Errors</div>
+                    <div class="item" onclick="location.href='./account-creation'">Account Creation</div>
+                    <div class="item" onclick="location.href='./maintenance'">Maintenance</div>
+                    <div class="item" onclick="location.href='./users'">User Attributes</div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

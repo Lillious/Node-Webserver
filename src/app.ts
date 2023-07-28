@@ -323,7 +323,7 @@ app.post('/2fa', (req: any, res: any) => {
             if (!results) return res.redirect('/login');
             query('UPDATE sessions SET code = ? WHERE email = ?', ['0', req.cookies.email])
                 .then(() => {
-                    res.redirect('/dashboard');
+                    res.redirect('/cpanel');
                 }).catch((err: any) => {
                     log.error(err);
                 });
@@ -389,17 +389,14 @@ app.use(function(req: any, res: any, next: any) {
         });
 });
 
-app.get('/admin', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    authentication.checkAccess(req.cookies.email).then((results: any) => {
-        if (results === 1) {
-            app.use(express.static(path.join(__dirname, '/admin')));
-            res.sendFile(path.join(__dirname, '/admin/index.html'));
-        } else {
-            res.redirect('back');
-        }
-    });
-});
+// Cpanel
+app.use('/cpanel', express.static(path.join(__dirname, '/cpanel'), {
+    maxAge: 2.88e+7
+}));
+
+app.use('/cpanel/users', express.static(path.join(__dirname, '/cpanel/users'), {
+    maxAge: 2.88e+7
+}));
 
 // Enable maintenance mode
 app.post('/api/toggle-maintenance', (req: any, res: any) => {
@@ -420,7 +417,7 @@ app.post('/api/toggle-maintenance', (req: any, res: any) => {
             }
             res.redirect('back');
         } else {
-            res.redirect('/dashboard');
+            res.redirect('/cpanel');
         }
     }).catch((err: any) => {
         log.error(err);
@@ -441,10 +438,6 @@ app.post('/logout', (req: any, res: any) => {
             res.redirect('/login');
         });
 });
-
-app.use('/dashboard', express.static(path.join(__dirname, '/dashboard'), {
-    maxAge: 2.88e+7
-}));
 
 app.get('/api/@me', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
