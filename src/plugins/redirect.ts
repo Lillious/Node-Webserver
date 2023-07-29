@@ -1,5 +1,5 @@
 const redirects = [
-    ["localhost/test", "localhost/login/"]
+    ["localhost/", "localhost/login/"]
 ];
 
 export default function redirect (req: any, res: any, next: any): void {

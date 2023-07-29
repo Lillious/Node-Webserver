@@ -394,7 +394,13 @@ app.use('/cpanel', express.static(path.join(__dirname, '/cpanel'), {
     maxAge: 2.88e+7
 }));
 
+// Users
 app.use('/cpanel/users', express.static(path.join(__dirname, '/cpanel/users'), {
+    maxAge: 2.88e+7
+}));
+
+// Logs
+app.use('/cpanel/logs', express.static(path.join(__dirname, '/cpanel/logging'), {
     maxAge: 2.88e+7
 }));
 
@@ -489,6 +495,27 @@ app.get('/api/users', (req: any, res: any) => {
                 }).catch((err: any) => {
                     log.error(err);
                 });
+        } else {
+            res.redirect('back');
+        }
+    }
+    ).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+app.get('/api/logs', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const logFile = fs.readFileSync(path.join(__dirname, '../logs/debug.log'), 'utf8');
+            const logs: string[] = [];
+            // for each line in logs, push to array
+            logFile.split('\n').forEach((line: any) => {
+                logs.push(line);
+            });
+            res.send(logs);
         } else {
             res.redirect('back');
         }

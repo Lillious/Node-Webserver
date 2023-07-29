@@ -15,7 +15,7 @@
     </head>
     <body>
         <nav>
-            <div id="logo">cPanel</div>
+            <div id="logo" onclick="location.href='/cpanel';">cPanel</div>
             <div id="logout">Logout</div>
         </nav>
         <div id="container">
@@ -68,6 +68,7 @@
                             <div class="progress-bar-fill" id="file-size-bar"></div>
                         </div>
                     </div>
+                    <br>
                 </div>
             </div>
             <div id="category-container">
@@ -97,7 +98,7 @@
                     <p>Advanced</p>
                 </div>
                 <div class="category-content">
-                    <div class="item" onclick="location.href='./errors'">Errors</div>
+                    <div class="item" onclick="location.href='./logs'">Logs</div>
                     <div class="item" onclick="location.href='./account-creation'">Account Creation</div>
                     <div class="item" onclick="location.href='./maintenance'">Maintenance</div>
                     <div class="item" onclick="location.href='./users'">User Attributes</div>

@@ -212,6 +212,7 @@ h1 {
 }
 
 nav {
+    user-select: none;
     position: fixed;
     left: 0;
     right: 0;
@@ -227,15 +228,36 @@ nav {
     box-shadow: var(--box-shadow);
 }
 
+#logo {
+    cursor: pointer;
+}
+
+#breadcrumbs {
+    position: absolute;
+    left: 100px;
+    font-size: var(--font-small);
+    color: var(--white);
+}
+
 #logout {
     cursor: pointer;
     font-size: var(--font-small);
     color: var(--white);
+    padding: 15px 20px;
+    border: 1px solid transparent;
     transition: 0.2s ease-in-out;
 }
 
 #logout:hover {
     color: var(--red);
+    border: 1px solid var(--red);
+    transition: 0.2s ease-in-out;
+}
+
+#logout:active {
+    color: var(--white);
+    background: var(--red);
+    border: 1px solid var(--red);
     transition: 0.2s ease-in-out;
 }
 
@@ -247,15 +269,16 @@ nav {
 
 #side-menu-right {
     position: absolute;
-    top: 75px;
-    bottom: 25px;
-    width: 25vw;
+    top: 55px;
+    width: 30vw;
     right: 25px;
     min-height: 300px;
     max-height: 600px;
+    height: 65vh;
     background-color: var(--light-grey);
     box-shadow: var(--box-shadow);
-    overflow-x: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 #info-panel {
@@ -267,22 +290,24 @@ nav {
     background-color: var(--light-grey);
     box-shadow: var(--box-shadow);
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .category {
-    margin-top: 75px;
+    margin-top: 55px;
     margin-bottom: 25px;
     margin-left: 25px;
-    height: 22vh;
+    height: 25vh;
     min-height: 200px;
     max-height: 400px;
-    width: 60vw;
+    width: 55vw;
     background-color: var(--light-grey);
     box-shadow: var(--box-shadow);
     overflow-y: auto;
 }
 
 .category-title {
+    user-select: none;
     position: sticky;
     top: 0;
     width: 100%;
@@ -295,34 +320,59 @@ nav {
     margin: 0;
     padding: 10px;
     font-size: var(--font-medium);
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis; 
 }
 
 .category .item {
+    user-select: none;
     display: inline-block;
     padding: 20px;
     font-size: var(--font-small);
     height: 2vh;
     width: 10vw;
+    min-width: 205px;
     margin: 10px;
-    white-space: nowrap; 
-    overflow: hidden;
-    text-overflow: ellipsis; 
     color: var(--white);
     cursor: pointer;
     border: 1px solid transparent;
     transition: 0.2s ease-in-out;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
 }
 
 .category .item:hover {
-    transition: 0.2s ease-in-out;
     color: var(--green);
     border: 1px solid var(--green);
+    transition: 0.2s ease-in-out;
+}
+
+.category .item:active {
+    color: var(--white);
+    background: var(--green);
+    border: 1px solid var(--green);
+    transition: 0.2s ease-in-out;
 }
 
 .list-item {
     color: var(--white);
     padding: 10px;
     border-bottom: 1px solid var(--grey);
+    transition: 0.2s ease-in-out;
+}
+
+.list-item p {
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+
+.list-item:hover {
+    color: var(--green);
+    transition: 0.2s ease-in-out;
 }
 
 .list-item-title {
@@ -332,6 +382,12 @@ nav {
 
 .list-item-content {
     font-size: var(--font-small);
+}
+
+.list-item-content p {
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis; 
 }
 
 .progress-bar {
