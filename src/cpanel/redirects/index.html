@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href="../../images/node.ico" type="image/x-icon">
+        <title>cPanel</title>
+        <!-- Preload css -->
+        <link rel="preload" href="../../css/style.css" as="style" onload="this.rel='stylesheet'">
+        <link rel="stylesheet" href="../../css/style.css">
+        <!-- Preload js -->
+        <script rel="preload" src="../../js/getRedirects.js" as="script" onload="this.rel='script'"></script>
+        <script rel="preload" src="../../js/logout.js" as="script" onload="this.rel='script'"></script>
+        <script defer async src="../../js/getRedirects.js"></script>
+        <script defer async src="../../js/logout.js"></script>
+    </head>
+    <body>
+        <nav>
+            <div id="logo" onclick="location.href='/cpanel';">cPanel</div>
+            <div id="breadcrumbs">&#8250; redirects</div>
+            <div id="logout">Logout</div>
+        </nav>
+        <div id="container">
+            <div id="info-panel">
+                <div class="category-title">
+                    <p>Redirect Rules</p>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

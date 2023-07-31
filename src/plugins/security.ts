@@ -4,34 +4,11 @@ import {service} from '../utils/ipservice.js';
 const w_ips = service.getWhitelistedIPs();
 const b_ips = service.getBlacklistedIPs();
 import {NullRoutingService} from '../utils/nullrouting.js';
-const paths = [
-    '.env',
-    'ajax.js',
-    'drupal.js',
-    'jquery.js',
-    'jquery.once.js',
-    'drupal.js',
-    'drupalSettingsLoader.js',
-    'l10n.js',
-    'drupal.js',
-    '.env',
-    'view-source',
-    'wlwmanifest.xml',
-    'credentials',
-    '.aws',
-    'wp-admin',
-    'shell',
-    'wget',
-    'curl',
-    'showLogin.cc',
-    'get_targets',
-    'bablosoft',
-    'console',
-    'Autodiscover.xml',
-    'execute-solution',
-    'mt-xmlrpc.cgi',
-    'php'
-];
+import { checkSecurityRule } from '../utils/security.js';
+import path from 'path';
+import { fileURLToPath } from 'node:url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let requests = 0;
 
@@ -73,33 +50,27 @@ query('SELECT * FROM allowed_ips')
 
 export default function filter(req: any, res: any, next: any, ip: any): void {
         requests++;
-        // Check if null routing is enabled
-        if (NullRoutingService.isEnabled()) {
-            // Check if the IP is allowed and return if not
-            if (!w_ips.includes(ip)) return;
-        } else {
-            // Check if the IP is blocked
-            if (b_ips.includes(ip)) return;
-            const found = paths.some(element => {
-                if (req.url.includes(element)) {
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-            if (found) {
-                if (b_ips.includes(ip) || w_ips.includes(ip)) return; // IP is already blocked or is whitelisted. Ignore
-                query('INSERT IGNORE INTO blocked_ips (ip) VALUES (?)', [ip])
-                    .then(() => {
-                        log.error(`[BLOCKED] - ${ip} - ${req.url}`);
-                        service.blacklistAdd(ip);
-                    })
-                    .catch((err: any) => {
-                        log.error(err);
-                    });
-                return;
-            } else {
-                next();
-            }
+        if (w_ips.includes(ip)) return next(); // Check if IP is whitelisted and if so, allow the request
+        // Check if null routing is enabled and if so, block the request
+        if (NullRoutingService.isEnabled()) return;
+        if (b_ips.includes(ip)) {
+            res.status(403);
+            res.sendFile(path.join(__dirname, '..', 'errors/403.html'));
+            return;
         }
+        checkSecurityRule(req.url).then(() => {
+            query('INSERT IGNORE INTO blocked_ips (ip) VALUES (?)', [ip])
+            .then(() => {
+                log.info(`[BLOCKED] - ${ip} - ${req.url}`);
+                service.blacklistAdd(ip);
+            })
+            .catch((err: any) => {
+                log.error(err);
+            });
+            res.status(418);
+            res.sendFile(path.join(__dirname, '..', 'errors/418.html'));
+            return;
+        }).catch((err: any) => {
+            if (err === 'NOT_FOUND') next();
+        });
 }

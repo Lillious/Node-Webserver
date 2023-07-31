@@ -20,15 +20,14 @@ import * as authentication from './utils/authentication.js';
 import query from './utils/database.js';
 import { hash, randomBytes } from './utils/hash.js';
 const port = process.env.PORT || 80;
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url);
 import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Plugins
 import filter from './plugins/security.js';
-import redirect from './plugins/redirect.js';
+import { redirect, removeRedirect, addRedirect } from './utils/redirect.js';
+import { getSetting, updateSetting } from './utils/settings.js';
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -70,7 +69,6 @@ const server = http.createServer(app);
 
 // Cluster Setup
 if (cluster.isPrimary) {
-
     // Job System
     import('./jobs/jobs.js');
 
@@ -132,9 +130,6 @@ app.use(function(req: any, res: any, next: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     filter(req, res, next, ip);
-    if (process.env.NODE_ENV === 'development') {
-        next();
-    }
 });
 
 // Redirects
@@ -155,7 +150,6 @@ app.use(function(req: any, res: any, next: any) {
         next();
     }
 });
-
 
 // Support for multiple domains on one server
 const domains: string[] = [];
@@ -194,21 +188,10 @@ app.use('/files', express.static(path.join(__dirname, '/files'), {
     maxAge: 2.88e+7
 }));
 
-
 // Login Page
 app.use('/login', express.static(path.join(__dirname, '/login'), {
     maxAge: 2.88e+7
 }));
-
-// Register Page
-(function() {
-    const settings = require('./settings.json');
-    if (settings.registration) {
-        app.use('/register', express.static(path.join(__dirname, '/register'), {
-            maxAge: 2.88e+7
-        }));
-    }
-})();
 
 // Home Page
 app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), {
@@ -258,30 +241,35 @@ app.post('/login', (req: any, res: any) => {
 
 // Check if registration is enabled
 app.get('/register', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    const settings = require('./settings.json');
-    if (settings.registration) {
-        res.status(200);
-    } else {
-        res.status(404);
-    } 
+    getSetting('registration').then((value: any) => {
+        if (value === 'true') {
+            res.status(200);
+            res.sendFile(path.join(__dirname, '/register/index.html'));
+        } else {
+            res.status(404);
+            res.sendFile(path.join(__dirname, '/errors/404.html'));
+        }
+    });
 });
 
 // Check if maintenance mode is enabled
 app.get('/maintenance', (req: any, res: any) => {
-    const settings = require('./settings.json');
-    if (settings.maintenance) {
-        res.status(200).send(true);
-    } else {
-        res.status(200).send(false);
-    }
+    getSetting('maintenance').then((value: any) => {
+        if (value === 'true') {
+            res.status(200).send(true);
+        } else {
+            res.status(404);
+            res.sendFile(path.join(__dirname, '/errors/404.html'));
+        }
+    });
 });
 
 // Register Post Request
 app.post('/register', (req: any, res: any) => {
-    const settings = require('./settings.json');
-    if (!settings.registration) return res.redirect('/login');
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    getSetting('registration').then((value: any) => {
+        if (value != 'true') return res.redirect('/login');
+    });
     const body = req.body;
     if (body.email && body.password && body.password2) {
     // Check if the passwords match
@@ -323,7 +311,7 @@ app.post('/2fa', (req: any, res: any) => {
             if (!results) return res.redirect('/login');
             query('UPDATE sessions SET code = ? WHERE email = ?', ['0', req.cookies.email])
                 .then(() => {
-                    res.redirect('/dashboard');
+                    res.redirect('/cpanel');
                 }).catch((err: any) => {
                     log.error(err);
                 });
@@ -389,41 +377,122 @@ app.use(function(req: any, res: any, next: any) {
         });
 });
 
-app.get('/admin', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    authentication.checkAccess(req.cookies.email).then((results: any) => {
+// Cpanel
+app.use('/cpanel', express.static(path.join(__dirname, '/cpanel'), {
+    maxAge: 2.88e+7
+}));
+
+// Users
+app.use('/cpanel/users', express.static(path.join(__dirname, '/cpanel/users'), {
+    maxAge: 2.88e+7
+}));
+
+// Logs
+app.use('/cpanel/logs', express.static(path.join(__dirname, '/cpanel/logging'), {
+    maxAge: 2.88e+7
+}));
+
+// Security Definitions
+app.use('/cpanel/security', express.static(path.join(__dirname, '/cpanel/security'), {
+    maxAge: 2.88e+7
+}));
+
+// Redirect rules
+app.use('/cpanel/redirects', express.static(path.join(__dirname, '/cpanel/redirects'), {
+    maxAge: 2.88e+7
+}));
+
+// Blocked IPs
+app.use('/cpanel/blocked-ips', express.static(path.join(__dirname, '/cpanel/blocked-ips'), {
+    maxAge: 2.88e+7
+}));
+
+app.post('/api/toggle-registration', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
         if (results === 1) {
-            app.use(express.static(path.join(__dirname, '/admin')));
-            res.sendFile(path.join(__dirname, '/admin/index.html'));
-        } else {
+            getSetting('registration').then((value: any) => {
+                if (value === 'true') {
+                    updateSetting('registration', 'false');
+                    log.warn('[Registration] - Disabled');
+                } else {
+                    updateSetting('registration', 'true');
+                    log.warn('[Registration Mode] - Enabled');
+                }
+            });
             res.redirect('back');
+        } else {
+            res.redirect('/cpanel');
         }
+    }).catch((err: any) => {
+        log.error(err);
+        res.status(500).send('Internal Server Error');
+    });
+});
+
+app.post('/api/add-redirect', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const body = req.body;
+            addRedirect(body.url, body.redirect).then(() => {
+                log.info(`[Redirect Added] - ${body.url} -> ${body.redirect}`);
+            }).catch((err: any) => {
+                log.error(err);
+            });
+            res.redirect('back');
+        } else {
+            res.redirect('/cpanel');
+        }
+    }).catch((err: any) => {
+        if (err === 'ALR_EXISTS') {
+            res.status(500).send('Redirect already exists');
+        } else {
+            res.status(500).send('Internal Server Error');
+        }
+    });
+});
+
+app.post('/api/remove-redirect', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const body = req.body;
+            removeRedirect(body.url).then(() => {
+                log.info(`[Redirect Removed] - ${body.url}`);
+            }).catch((err: any) => {
+                log.error(err);
+            });
+            res.redirect('back');
+        } else {
+            res.redirect('/cpanel');
+        }
+    }).catch((err: any) => {
+        log.error(err);
     });
 });
 
 // Enable maintenance mode
 app.post('/api/toggle-maintenance', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    const body = req.body;
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {
-            const settings = require('./settings.json');
-            if (body.maintenance == 'true') {
-                settings.maintenance = true;
-                fs.writeFileSync(path.join(__dirname, 'settings.json'), JSON.stringify(settings, null, 4));
-                log.warn('[Maintenance Mode] - Enabled');
-            } else {
-                settings.maintenance = false;
-                fs.writeFileSync(path.join(__dirname, 'settings.json'), JSON.stringify(settings, null, 4));
-                log.warn('[Maintenance Mode] - Disabled');
-            }
+            getSetting('maintenance').then((value: any) => {
+                if (value === 'true') {
+                    updateSetting('maintenance', 'false');
+                    log.warn('[Maintenance Mode] - Disabled');
+                } else {
+                    updateSetting('maintenance', 'true');
+                    log.warn('[Maintenance Mode] - Enabled');
+                }
+            });
             res.redirect('back');
         } else {
-            res.redirect('/dashboard');
+            res.redirect('/cpanel');
         }
     }).catch((err: any) => {
         log.error(err);
+        res.status(500).send('Internal Server Error');
     });
 });
 
@@ -441,10 +510,6 @@ app.post('/logout', (req: any, res: any) => {
             res.redirect('/login');
         });
 });
-
-app.use('/dashboard', express.static(path.join(__dirname, '/dashboard'), {
-    maxAge: 2.88e+7
-}));
 
 app.get('/api/@me', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
@@ -497,10 +562,92 @@ app.get('/api/users', (req: any, res: any) => {
                     log.error(err);
                 });
         } else {
-            res.redirect('back');
+            res.status(403).send('Forbidden');
         }
     }
     ).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+app.get('/api/logs', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const file = fs.readFileSync(path.join(__dirname, '../logs/debug.log'), 'utf8');
+            const rows: string[] = [];
+            file.split('\n').forEach((line: any) => {
+                if (!line.startsWith('#') || line === '') {
+                    rows.push(line);
+                }
+            });
+            res.send(rows);
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+app.get('/api/security-definitions', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const file = fs.readFileSync(path.join(__dirname, 'config/security.cfg'), 'utf8');
+            const rows: string[] = [];
+            file.split('\n').forEach((line: any) => {
+                if (!line.startsWith('#') || line === '') {
+                    rows.push(line);
+                }
+            });
+            res.send(rows);
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+app.get('/api/redirect-rules', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const file = fs.readFileSync(path.join(__dirname, 'config/redirects.cfg'), 'utf8');
+            const rows: string[] = [];
+            file.split('\n').forEach((line: any) => {
+                if (!line.startsWith('#') || line === '') {
+                    rows.push(line);
+                }
+            });
+            res.send(rows);
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+app.get('/api/blocked-ips', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        const rows: string[] = [];
+        if (results === 1) {
+            query('SELECT * FROM blocked_ips')
+                .then((results: any) => {
+                    results.forEach((row: any) => {
+                        rows.push(row.ip);
+                    });
+                    res.send(rows);
+                }).catch((err: any) => {
+                    log.error(err);
+                });
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
         log.error(err);
     });
 });

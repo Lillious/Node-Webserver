@@ -1,9 +1,8 @@
 (function() {
-    const serverinfo = document.getElementById('info-panel');
     const ip = document.getElementById('server-ip-text');
     const directory = document.getElementById('home-directory-text');
     const domain = document.getElementById('primary-domain-text');
-    if (serverinfo) {
+    if (ip && directory && domain) {
         fetch('/api/serverinfo', {
                 method: 'GET',
                 headers: {
@@ -49,7 +48,7 @@
                         const _total = Math.round((total / 1e+9) * 10) / 10
                         fileSize.innerHTML = `${_used} GB / ${_total} GB (${percentage}%)`;
                         if (bar) bar.style.width = `${percentage}%`;
-                        if (percentage >= 75 && percentage < 90) {
+                        if (percentage >= 50 && percentage < 90) {
                             if (bar) bar.style.backgroundColor = '#f9a825';
                         } else if (percentage >= 90) {
                             if (bar) bar.style.backgroundColor = '#e74c3c';
@@ -59,6 +58,27 @@
             })
             .catch((err: any) => {
                 if (fileSize) fileSize.innerHTML = 'Error';
+                console.error(err);
+            });
+    }
+
+    const display_name = document.getElementById('display_name');
+    if (display_name) {
+        fetch('/api/@me', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                cache: 'no-cache',
+            })
+            .then((res: any) => {
+                if (res.status === 200) {
+                    res.json().then((data: any) => {
+                        display_name.innerHTML = data.email;
+                    });
+                }
+            })
+            .catch((err: any) => {
                 console.error(err);
             });
     }

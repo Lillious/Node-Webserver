@@ -5,27 +5,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const info = (message: string) => {
-    const log = `${timestamp()} \x1b[32m${message}\x1b[0m`;
+    const log = `${timestamp()} - \x1b[32m${message}\x1b[0m`;
     console.log(log);
-    WriteLogFile(log)
+    WriteLogFile(message)
 };
 
 export const error = (message: string) => {
-    const log = `${timestamp()} \x1b[31m${message}\x1b[0m`;
+    const log = `${timestamp()} - \x1b[31m${message}\x1b[0m`;
     console.error(log);
-    WriteLogFile(log)
+    WriteLogFile(message)
 };
 
 export const warn = (message: string) => {
-    const log = `${timestamp()} \x1b[33m${message}\x1b[0m`;
+    const log = `${timestamp()} - \x1b[33m${message}\x1b[0m`;
     console.warn(log);
-    WriteLogFile(log)
+    WriteLogFile(message)
 };
 
 export const debug = (message: string) => {
-    const log = `${timestamp()} \x1b[34m${message}\x1b[0m`;
+    const log = `${timestamp()} - \x1b[34m${message}\x1b[0m`;
     console.debug(log);
-    WriteLogFile(log)
+    WriteLogFile(message)
 };
 
 const logDir = path.join(__dirname, '../../logs');
@@ -43,7 +43,7 @@ const timestamp = () => {
 
 function WriteLogFile (message: string) {
     try {
-        fs.appendFileSync(path.join(__dirname, '../../logs/debug.log'), `${timestamp()} ${message}\n`);
+        fs.appendFileSync(path.join(__dirname, '../../logs/debug.log'), `<b>${timestamp()}</b> - ${message}\n`);
     } catch (err) {
         error('Failed to write to debug.log');
     }
