@@ -14,12 +14,13 @@
                     if (data.length === 0) {
                         panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>No users found</p></div></div>`;
                     } else {
-                        for (let i = 0; i < data.length; i++) {
-                            const user = data[i];
-                            panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>${user.email}</p></div></div>`;
+                        for (let i = 0; i < data.length; i++) {                            
+                            panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>${data[i].email}</p></div></div>`;
                         }
                     }
                 });
+            } else {
+                panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>Failed to get users</p></div></div>`;
             }
         });
     }

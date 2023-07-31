@@ -151,7 +151,6 @@ app.use(function(req: any, res: any, next: any) {
     }
 });
 
-
 // Support for multiple domains on one server
 const domains: string[] = [];
 
@@ -188,7 +187,6 @@ app.use(vhost('files.*.*', express.static(path.join(__dirname, '/files'), {
 app.use('/files', express.static(path.join(__dirname, '/files'), {
     maxAge: 2.88e+7
 }));
-
 
 // Login Page
 app.use('/login', express.static(path.join(__dirname, '/login'), {
@@ -394,6 +392,21 @@ app.use('/cpanel/logs', express.static(path.join(__dirname, '/cpanel/logging'), 
     maxAge: 2.88e+7
 }));
 
+// Security Definitions
+app.use('/cpanel/security', express.static(path.join(__dirname, '/cpanel/security'), {
+    maxAge: 2.88e+7
+}));
+
+// Redirect rules
+app.use('/cpanel/redirects', express.static(path.join(__dirname, '/cpanel/redirects'), {
+    maxAge: 2.88e+7
+}));
+
+// Blocked IPs
+app.use('/cpanel/blocked-ips', express.static(path.join(__dirname, '/cpanel/blocked-ips'), {
+    maxAge: 2.88e+7
+}));
+
 app.post('/api/toggle-registration', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
@@ -549,7 +562,7 @@ app.get('/api/users', (req: any, res: any) => {
                     log.error(err);
                 });
         } else {
-            res.redirect('back');
+            res.status(403).send('Forbidden');
         }
     }
     ).catch((err: any) => {
@@ -558,22 +571,83 @@ app.get('/api/users', (req: any, res: any) => {
 });
 
 app.get('/api/logs', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {
-            const logFile = fs.readFileSync(path.join(__dirname, '../logs/debug.log'), 'utf8');
-            const logs: string[] = [];
-            // for each line in logs, push to array
-            logFile.split('\n').forEach((line: any) => {
-                logs.push(line);
+            const file = fs.readFileSync(path.join(__dirname, '../logs/debug.log'), 'utf8');
+            const rows: string[] = [];
+            file.split('\n').forEach((line: any) => {
+                if (!line.startsWith('#') || line === '') {
+                    rows.push(line);
+                }
             });
-            res.send(logs);
+            res.send(rows);
         } else {
-            res.redirect('back');
+            res.status(403).send('Forbidden');
         }
-    }
-    ).catch((err: any) => {
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+app.get('/api/security-definitions', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const file = fs.readFileSync(path.join(__dirname, 'config/security.cfg'), 'utf8');
+            const rows: string[] = [];
+            file.split('\n').forEach((line: any) => {
+                if (!line.startsWith('#') || line === '') {
+                    rows.push(line);
+                }
+            });
+            res.send(rows);
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+app.get('/api/redirect-rules', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const file = fs.readFileSync(path.join(__dirname, 'config/redirects.cfg'), 'utf8');
+            const rows: string[] = [];
+            file.split('\n').forEach((line: any) => {
+                if (!line.startsWith('#') || line === '') {
+                    rows.push(line);
+                }
+            });
+            res.send(rows);
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+app.get('/api/blocked-ips', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        const rows: string[] = [];
+        if (results === 1) {
+            query('SELECT * FROM blocked_ips')
+                .then((results: any) => {
+                    results.forEach((row: any) => {
+                        rows.push(row.ip);
+                    });
+                    res.send(rows);
+                }).catch((err: any) => {
+                    log.error(err);
+                });
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
         log.error(err);
     });
 });
