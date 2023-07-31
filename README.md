@@ -191,13 +191,13 @@ Here, myFirstJob is the name of the job object that you want to create. You can 
 <br>
 
 ## Redirects
-Location: src/plugins/redirect.ts
+Location: src/config/redirects.cfg
+
+Adding/removing a redirect programmatically
 ```js
-// Add redirect rules in the section below
-// http and https protocols are dynamic so the domain and path is the only information needed
-const redirects = [
-    ["localhost/test/", "localhost/login/"],
-];
+import { addRedirect, removeRedirect } from './plugins/redirect.js';
+addRedirect(from: string, to: string)
+removeRedirect(from: string);
 ```
 
 <br>

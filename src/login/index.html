@@ -10,11 +10,14 @@
         <link rel="stylesheet" href="../css/style.css">
         <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
         <!-- Preload js -->
-        <script rel="preload" src="../js/script.js" as="script" onload="this.rel='script'"></script>
-        <script defer async src="../js/script.js"></script>
+        <script rel="preload" src="../js/core.js" as="script" onload="this.rel='script'"></script>
+        <script defer async src="../js/core.js"></script>
     </head>
     <body>
-        <div id="banner"></div>
+        <nav>
+            <div id="logo" onclick="location.href='/cpanel';">cPanel</div>
+            <div id="breadcrumbs">&#8250; login</div>
+        </nav>
         <div id="container-login">
             <div id="login-form">
                 <h1>LOGIN</h1>

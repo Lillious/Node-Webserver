@@ -44,6 +44,7 @@ input:not([type=checkbox], [type=button]) {
     background: transparent;
     text-indent: 5px;
     transition: 0.2s;
+    user-select: none;
 }
 
 input[type=checkbox] {
@@ -214,6 +215,7 @@ h1 {
 nav {
     user-select: none;
     position: fixed;
+    top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
@@ -301,6 +303,7 @@ nav {
     min-height: 200px;
     max-height: 400px;
     width: 55vw;
+    max-width: 810px;
     background-color: var(--light-grey);
     box-shadow: var(--box-shadow);
     overflow-y: auto;
@@ -336,7 +339,7 @@ nav {
     margin: 10px;
     color: var(--white);
     cursor: pointer;
-    border: 1px solid transparent;
+    border: 1px solid var(--white);
     transition: 0.2s ease-in-out;
     white-space: nowrap; 
     overflow: hidden;
@@ -350,12 +353,12 @@ nav {
     transition: 0.2s ease-in-out;
 }
 
-.category .item:active {
+.category .item:active:is(.category .item:hover) {
     color: var(--white);
     background: var(--green);
-    border: 1px solid var(--green);
     transition: 0.2s ease-in-out;
 }
+
 
 .list-item {
     color: var(--white);
