@@ -15,7 +15,7 @@
                         panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>No users found</p></div></div>`;
                     } else {
                         for (let i = 0; i < data.length; i++) {                            
-                            panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>${data[i].email}</p></div></div>`;
+                            panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>${data[i].email}</p><div class="list-item-remove" onclick="removeUser('${data[i].email}');">✕</div></div></div>`;
                         }
                     }
                 });

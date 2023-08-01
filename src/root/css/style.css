@@ -393,6 +393,22 @@ nav {
     text-overflow: ellipsis; 
 }
 
+.list-item-remove {
+    float: right;
+    user-select: none;
+    margin-top: -30px;
+    margin-right: 15px;
+    cursor: pointer;
+    font-size: var(--font-small);
+    color: var(--white);
+    transition: 0.2s ease-in-out;
+}
+
+.list-item-remove:hover, .list-item-remove:active {
+    color: var(--red);
+    transition: 0.2s ease-in-out;
+}
+
 .progress-bar {
     position: absolute;
     right: 10px;
