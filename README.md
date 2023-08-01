@@ -19,12 +19,11 @@ NodeJS v20.2.0+
 - Request and file caching for faster load times
 - Secure database connection utility with pooling and query builder
 - Password hashing and salting for enhanced security
-- Plugin system and maintenance mode banner
+- Plugin system
 - Login system and account registration
 - Web server settings and blazing-fast, lightweight performance
 - Sample database included
 - Control panel
-- User settings
 
 <br>
 
