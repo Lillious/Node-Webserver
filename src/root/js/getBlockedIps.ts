@@ -16,7 +16,7 @@
                     } else {
                         for (let i = 0; i < data.length; i++) {
                             if (data[i] !== '') {
-                                panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>${data[i]}</p></div></div>`;
+                                panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>${data[i]}</p><div class="list-item-remove" onclick="remove('${data[i]}');">✕</div></div></div>`;
                             }
                         }
                     }
