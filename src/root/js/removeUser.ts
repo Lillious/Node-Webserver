@@ -1,12 +1,12 @@
-function removeIp (ip: string) {
-    fetch('/api/remove-blocked-ip', {
+function removeUser (email: string) {
+    fetch('/api/remove-user', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         cache: 'no-cache',
         body: JSON.stringify({
-            ip: ip,
+            email: email,
         })
     }).then((res: any) => {
         if (res.status === 200) {
@@ -15,8 +15,8 @@ function removeIp (ip: string) {
                 const items = list.getElementsByClassName('list-item-content');
                 for (let i = 0; i < items.length; i++) {
                     const item = items[i];
-                    const _ip = item.getElementsByTagName('p')[0].innerHTML;
-                    if (ip === _ip) {
+                    const _email = item.getElementsByTagName('p')[0].innerHTML;
+                    if (email === _email) {
                         if (item.parentElement) {
                             item.parentElement.remove();
                             return;

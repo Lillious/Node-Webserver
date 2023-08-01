@@ -677,6 +677,29 @@ app.post('/api/remove-blocked-ip', (req: any, res: any) => {
     });
 });
 
+app.post('/api/remove-user', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            query('DELETE FROM accounts WHERE email = ?', [req.body.email])
+                .then((results: any) => {
+                    if (results.affectedRows === 1) {
+                        res.status(200).send('OK');
+                    } else {
+                        res.status(404).send('Not Found');
+                    }
+                }).catch((err: any) => {
+                    log.error(err);
+                    res.status(500).send('Internal Server Error');
+                });
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
 app.post('/api/create-account', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const body = req.body;
