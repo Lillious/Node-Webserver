@@ -1,6 +1,9 @@
 ## Node Webserver
 Experience the power of ExpressJS with this secure and easy-to-use web server. Designed to be lightweight and efficient, it delivers lightning-fast performance and unparalleled security.
 
+![Teaser 1](https://github.com/Lillious/Node-Webserver/blob/main/teasers/teaser1.png?raw=true)
+![Teaser 2](https://github.com/Lillious/Node-Webserver/blob/main/teasers/teaser2.png?raw=true)
+
 <br>
 
 ## Supported Node Version
