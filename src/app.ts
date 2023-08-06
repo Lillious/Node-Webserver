@@ -777,33 +777,48 @@ function shuffle(str: string, length: number) {
 
 function createSession (req: any, res: any, _email?: string) {
     _email = _email || req.cookies.email;
-    // Check if an account exists with the email
-    query('SELECT email FROM accounts WHERE email = ?', [_email]).then((results: any) => {
-        if (results.length === 0) return res.redirect('/login');
-        // Delete any existing sessions
-        query('DELETE FROM sessions WHERE email = ?', [_email])
-            .then(() => {
-                const session = randomBytes(64);
-                const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-                const code = shuffle(session, 6);
-                query('INSERT INTO sessions (session, email, ip, code, created) VALUES (?, ?, ?, ?, ?)', [session, _email, ip, code, new Date()])
+    if (!_email) return res.redirect('/login');
+    authentication.checkAccess(_email).then((results: any) => {
+        if (results === -1) {
+            res.clearCookie('email');
+            res.clearCookie('session');
+            res.status(403);
+            res.sendFile(path.join(__dirname, 'errors/403.html'));
+            return;
+        } else {
+            query('SELECT email FROM accounts WHERE email = ?', [_email]).then((results: any) => {
+                if (results.length === 0) return res.redirect('/login');
+                // Delete any existing sessions
+                query('DELETE FROM sessions WHERE email = ?', [_email])
                     .then(() => {
-                        res.cookie('session', session, {
-                            maxAge: 86400000,
-                            httpOnly: true
-                        });
-                        log.info(`[LOGIN] ${_email}`);
-                        if (_email )email.send(_email, 'Verification Code', `Your verification code is: ${code}`);
-                        res.redirect('/login/2fa.html');
+                        const session = randomBytes(64);
+                        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+                        const code = shuffle(session, 6);
+                        query('INSERT INTO sessions (session, email, ip, code, created) VALUES (?, ?, ?, ?, ?)', [session, _email, ip, code, new Date()])
+                            .then(() => {
+                                res.cookie('session', session, {
+                                    maxAge: 86400000,
+                                    httpOnly: true
+                                });
+                                const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+                                log.info(`[LOGIN] ${_email} - IP: ${ip}`);
+                                if (_email ) email.send(_email, 'Verification Code', `Your verification code is: ${code}`);
+                                res.redirect('/login/2fa.html');
+                            }).catch((err: any) => {
+                                log.error(err);
+                            });
                     }).catch((err: any) => {
                         log.error(err);
+                        res.status(500).send('Internal Server Error');
                     });
             }).catch((err: any) => {
                 log.error(err);
                 res.status(500).send('Internal Server Error');
             });
+        }
     }).catch((err: any) => {
         log.error(err);
-        res.status(500).send('Internal Server Error');
-    }); 
+        res.redirect('/login');
+    });
+
 }
