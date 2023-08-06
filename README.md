@@ -38,6 +38,15 @@ NodeJS v20.2.0+
 - Configurable Automated Backups
 - Clear Expired Login Sessions
 
+## Permission Levels
+```
+(-1)    banned     Can {  }                          Cannot { Access, View, Modify }
+
+(0)     user       Can { Access }                    Cannot { View, Modify }
+
+(1)     admin      Can { Access, View, Modify }      Cannot {  }
+```
+
 ## Database Environment Variables
 ```
 DATABASE_HOST

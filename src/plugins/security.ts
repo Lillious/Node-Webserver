@@ -1,4 +1,5 @@
 import * as log from '../utils/logging.js';
+import * as authentication from '../utils/authentication.js';
 import query from '../utils/database.js';
 import {service} from '../utils/ipservice.js';
 const w_ips = service.getWhitelistedIPs();
@@ -51,6 +52,27 @@ query('SELECT * FROM allowed_ips')
 export default function filter(req: any, res: any, next: any, ip: any): void {
         requests++;
         if (w_ips.includes(ip)) return next(); // Check if IP is whitelisted and if so, allow the request
+        // Check if the user is banned and if so, block the request
+        if (req.cookies.email) {
+            authentication.checkAccess(req.cookies.email).then((results: any) => {
+                if (results === -1) {
+                    res.clearCookie('email');
+                    res.clearCookie('session');
+                    res.status(403);
+                    res.sendFile(path.join(__dirname, '..', 'errors/403.html'));
+                    return;
+                } else {
+                    checkAccess(req, res, next, ip);
+                }
+            }).catch((err: any) => {
+                log.error(err);
+            });
+        } else {
+            checkAccess(req, res, next, ip);
+        }
+}
+
+function checkAccess (req: any, res: any, next: any, ip: any) {
         // Check if null routing is enabled and if so, block the request
         if (NullRoutingService.isEnabled()) return;
         if (b_ips.includes(ip)) {
