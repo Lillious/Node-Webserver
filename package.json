@@ -1,6 +1,6 @@
 {
   "name": "node-webserver",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "An easy-to-use webserver powered by Node and ExpressJS",
   "main": "dist/src/app.js",
   "scripts": {
@@ -13,8 +13,7 @@
     "copy-misc": "copyfiles -u 1 ./src/**/*.txt ./src/**/*.json ./src/*.json ./dist/src/",
     "copy-media": "copyfiles -u 1 ./src/**/*.mp3 ./src/**/*.mp4 ./src/**/*.wav ./src/**/*.mov ./src/**/*.ogg ./src/**/*.avi ./dist/src/",
     "copy-images": "copyfiles -u 1 ./src/**/*.png ./src/**/*.ico ./src/**/*.jpg ./src/**/*.jpeg ./src/**/*.gif ./src/**/*.apng ./src/**/*.pdf ./src/**/*.raw ./dist/src/",
-    "minify": "npm run uglify",
-    "uglify": "uglifyjs ./dist/src/app.js -o ./dist/src/app.js",
+    "minify": "node ./dist/src/minify.js",
     "lint": "eslint ./src/**/*.ts",
     "lint-fix": "eslint ./src/**/*.ts --fix"
   },
@@ -44,7 +43,6 @@
     "express-asyncify": "^1.1.0",
     "express-rate-limit": "^6.7.0",
     "hpp": "^0.2.3",
-    "html-minifier": "^4.0.0",
     "morgan": "^1.10.0",
     "mysql2": "^3.2.0",
     "nodemailer": "^6.9.1",
@@ -52,7 +50,6 @@
     "rimraf": "^4.1.2",
     "tar": "^6.1.13",
     "typescript": "^4.9.5",
-    "uglify-js": "^3.17.4",
     "vhost": "^3.0.2"
   }
 }
