@@ -33,6 +33,7 @@ NodeJS v20.2.0+
 - Authenticated/unauthenticated routes, permission system
 - robot.txt support
 - Password hashing and salting for enhanced security
+- Post runtime file tamper detection / notification system
 
 ## Scheduled Jobs
 - Configurable Automated Backups
@@ -61,6 +62,7 @@ DATABASE_NAME
 EMAIL_USER
 EMAIL_PASSWORD
 EMAIL_SERVICE
+EMAIL_ALERTS
 ```
 
 ## Other Environment Variables
