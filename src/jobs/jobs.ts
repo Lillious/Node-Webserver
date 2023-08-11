@@ -1,13 +1,19 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
+import dotenv from 'dotenv';
+dotenv.config();
 import * as log from '../utils/logging.js';
 import query from '../utils/database.js';
+import * as email from '../utils/mailer.js';
 import fs from 'fs';
 import tar from 'tar';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const files = [] as string[];
+const tempStorage = [] as any[];
 
 const job = {
     // Clear inactive sessions from the database
@@ -17,7 +23,7 @@ const job = {
         interval: 5000, // 1 hour
         start() {
             query('DELETE FROM sessions WHERE created + interval 8 hour < now()');
-        }
+        },
     },
     // Backup the source code
     backup: {
@@ -73,7 +79,47 @@ const job = {
                 log.error(err);
             });
         }
-    }
+    },
+    // Watch dog service. Scans for altered files and notifies EMAIL_ALERTS of any changes.
+    watchDog: {
+        name: 'Watch Dog Service',
+        enabled: true,
+        interval: 300000, // 5 minutes
+        startImediately: true, // Run on startup
+        start() {
+            log.info('Scanning files...');
+            const tempStorageCopy = [...tempStorage];
+            tempStorageCopy.forEach((file) => {
+                const fileBuffer = fs.readFileSync(file.file);
+                const hashSum = crypto.createHash('sha256');
+                hashSum.update(fileBuffer);
+                const hex = hashSum.digest('hex');
+                if (hex != file.hash) {
+                    log.error(`File ${file.file} has been altered since last scan.`);
+                    email.send(process.env.EMAIL_ALERTS, 'Watch Dog Alert', `File ${file.file} has been altered since last scan.`);
+                }
+            });
+            this.initialize();
+        },
+        initialize() {
+            tempStorage.length = 0;
+            files.length = 0;
+            getFiles(path.join(__dirname, '..', '..', 'src')).then((files) => {
+                files.forEach((file) => {
+                    const fileBuffer = fs.readFileSync(file);
+                    const hashSum = crypto.createHash('sha256');
+                    hashSum.update(fileBuffer);
+                    const hex = hashSum.digest('hex');
+                    tempStorage.push({
+                        file,
+                        hash: hex
+                    });
+                });
+            }).catch((err) => {
+                log.error(err);
+            });
+        }
+    },
 };
 
 Object.keys(job).forEach((key: any) => {
@@ -86,5 +132,33 @@ Object.keys(job).forEach((key: any) => {
                 log.error(err);
             }
         }, job[key].interval);
+
+        // Run startup jobs
+        if (job[key].startImediately) {
+            try {
+                job[key].initialize();
+            } catch (err) {
+                log.error(err);
+            }
+        }
     }
 });
+
+
+function getFiles(directory: string) : Promise<string[]> {
+    return new Promise((resolve, reject) => {
+        if (!fs.existsSync(directory)) reject('Directory does not exist');
+        const dir = fs.readdirSync(directory);
+        for (const file of dir) {
+            const filePath = path.join(directory, file);
+            if (fs.statSync(filePath).isDirectory())            
+                getFiles(filePath);
+            else {
+                if (file.endsWith('.js') || file.endsWith('.css') || file.endsWith('.html')) {
+                    files.push(filePath);
+                }
+            }
+        }
+        resolve(files);
+    });
+}
