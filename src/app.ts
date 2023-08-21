@@ -577,11 +577,14 @@ app.get('/api/logs', (req: any, res: any) => {
         if (results === 1) {
             const file = fs.readFileSync(path.join(__dirname, '../logs/debug.log'), 'utf8');
             const rows: string[] = [];
-            file.split('\n').forEach((line: any) => {
-                if (!line.startsWith('#') || line === '') {
-                    rows.push(line);
+            // Only get last 50 lines
+            const lines = file.split('\n');
+            const start = lines.length - 50;
+            for (let i = start; i < lines.length; i++) {
+                if (!lines[i].startsWith('#') || lines[i] === '') {
+                    rows.push(lines[i]);
                 }
-            });
+            }
             res.send(rows);
         } else {
             res.status(403).send('Forbidden');

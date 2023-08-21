@@ -37,7 +37,6 @@ const job = {
             if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir);
             const directoryToBackup = path.join(__dirname, '..', '..', '..', 'src');
             if (!fs.existsSync(directoryToBackup)) throw new Error(`Unable to locate ${directoryToBackup}`);
-            log.info('Backup started...');
             tar.c({
                 gzip: true,
                 file: backupFile,
@@ -59,7 +58,7 @@ const job = {
                 const backupPath = path.join(backupDir, backupName);
                 fs.rename(backupFile, backupPath, (err: any) => {
                     if (err) throw err;
-                    log.info('Backup completed...');
+                    log.info('Backup completed');
                 });
                 // Delete last backup if there are more than 5
                 fs.readdir(backupDir, (err: any, files: any) => {
@@ -87,7 +86,6 @@ const job = {
         interval: 300000, // 5 minutes
         startImediately: true, // Run on startup
         start() {
-            log.info('Scanning files...');
             const tempStorageCopy = [...tempStorage];
             tempStorageCopy.forEach((file) => {
                 const fileBuffer = fs.readFileSync(file.file);
