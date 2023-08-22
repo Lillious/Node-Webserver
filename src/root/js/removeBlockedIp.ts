@@ -1,6 +1,6 @@
 function removeIp (ip: string) {
     fetch('/api/remove-blocked-ip', {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
         },

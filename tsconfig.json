@@ -24,11 +24,12 @@
   },
   "include": [
     "src/**/*"
-, "src/app.ts"  ],
+, "src/app.ts", "deploy.js", "cleanup.js", "minify.ts"  ],
   "exclude": [
     "node_modules",
     "dist",
     "build",
     "backups",
+    "tools"
   ]
 }

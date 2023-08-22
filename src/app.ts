@@ -24,10 +24,45 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/* File Uploads */
+import multer from 'multer';
+
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, path.join(__dirname, '../../files'));
+    },
+    filename: function(req, file, cb) {
+        cb(null, file.originalname);
+    }
+});
+
+const upload = multer({
+    dest: path.join(__dirname, '../../files'),
+    storage: storage,
+    limits: {
+        fileSize: 1e+10
+    },
+    fileFilter: function(req, file, cb) {
+
+        // const types = [
+        //     'image/png',
+        //     'image/jpeg',
+        //     'image/gif'
+        // ];
+
+        // if (!types.includes(file.mimetype)) {
+        //     return cb(new Error('Only images are allowed'));
+        // }
+
+        cb(null, true);
+    }
+});
+
 // Plugins
 import filter from './plugins/security.js';
 import { redirect, removeRedirect, addRedirect } from './utils/redirect.js';
 import { getSetting, updateSetting } from './utils/settings.js';
+import { error } from 'node:console';
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -172,7 +207,7 @@ app.use(function(req: any, res: any, next: any) {
             }
         } else {
             next();
-        }   
+        }
     });
 });
 
@@ -180,11 +215,11 @@ app.use(function(req: any, res: any, next: any) {
 /* Routes that do not require authentication */
 
 // Files
-app.use(vhost('files.*.*', express.static(path.join(__dirname, '/files'), {
+app.use(vhost('files.*.*', express.static(path.join(__dirname, '../../files'), {
     maxAge: 2.88e+7
 })));
 
-app.use('/files', express.static(path.join(__dirname, '/files'), {
+app.use('/files', express.static(path.join(__dirname, '../../files'), {
     maxAge: 2.88e+7
 }));
 
@@ -379,6 +414,11 @@ app.use(function(req: any, res: any, next: any) {
 
 // Cpanel
 app.use('/cpanel', express.static(path.join(__dirname, '/cpanel'), {
+    maxAge: 2.88e+7
+}));
+
+// File browser
+app.use('/cpanel/browser', express.static(path.join(__dirname, '/cpanel/browser'), {
     maxAge: 2.88e+7
 }));
 
@@ -577,7 +617,6 @@ app.get('/api/logs', (req: any, res: any) => {
         if (results === 1) {
             const file = fs.readFileSync(path.join(__dirname, '../logs/debug.log'), 'utf8');
             const rows: string[] = [];
-            // Only get last 50 lines
             const lines = file.split('\n');
             const start = lines.length - 50;
             for (let i = start; i < lines.length; i++) {
@@ -593,6 +632,54 @@ app.get('/api/logs', (req: any, res: any) => {
         log.error(err);
     });
 });
+
+app.get('/api/files', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const _files: string[] = [];
+            fs.readdir(path.join(__dirname, '../../files'), (err: any, files: any) => {
+                if (err) {
+                    log.error(err);
+                    res.status(500).send('Internal Server Error');
+                } else {
+                    files.forEach((file: any) => {
+                        const stats = fs.statSync(path.join(__dirname, '../../files', file));
+                        const size = formatFileSize(stats.size) as string;
+                        _files.push({name: file, size: `${size}`} as any);
+                    });
+                }
+                res.send(_files);
+            });
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+function formatFileSize(bytes: number) {
+    if (bytes >= 1e9) { // If size is greater than or equal to 1 GB
+      return (bytes / 1e9).toFixed(2) + " GB"; // Convert to GB and round to 2 decimal places
+    } else if (bytes >= 1e6) { // If size is greater than or equal to 1 MB
+      return (bytes / 1e6).toFixed(2) + " MB"; // Convert to MB and round to 2 decimal places
+    } else {
+      return (bytes / 1e3).toFixed(2) + " KB"; // Convert to KB and round to 2 decimal places
+    }
+  }
+
+app.post('/api/upload', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
+    upload.single('fileToUpload')(req, res, (err: any) => {
+        if (err) {
+            log.error(err);
+        }
+    });
+    res.redirect('back');
+});
+
 
 app.get('/api/security-definitions', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
@@ -641,9 +728,10 @@ app.get('/api/blocked-ips', (req: any, res: any) => {
         if (results === 1) {
             query('SELECT * FROM blocked_ips')
                 .then((results: any) => {
-                    results.forEach((row: any) => {
-                        rows.push(row.ip);
-                    });
+                    const start = results.length - 100;
+                    for (let i = start; i < results.length; i++) {
+                        rows.push(results[i].ip);
+                    }
                     res.send(rows);
                 }).catch((err: any) => {
                     log.error(err);
@@ -657,7 +745,7 @@ app.get('/api/blocked-ips', (req: any, res: any) => {
     });
 });
 
-app.post('/api/remove-blocked-ip', (req: any, res: any) => {
+app.delete('/api/remove-blocked-ip', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {
@@ -680,7 +768,31 @@ app.post('/api/remove-blocked-ip', (req: any, res: any) => {
     });
 });
 
-app.post('/api/remove-user', (req: any, res: any) => {
+app.delete('/api/remove-file', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            // Check if the file exists
+            if (fs.existsSync(path.join(__dirname, '../../files', req.body.file))) {
+                // Remove it
+                fs.unlinkSync(path.join(__dirname, '../../files', req.body.file));
+                if (fs.readdirSync(path.join(__dirname, '../../files')).length === 0) {
+                    res.status(201).send('OK');
+                } else {
+                    res.status(200).send('OK');
+                }
+            } else {
+                res.status(404).send('Not Found');
+            }
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+app.delete('/api/remove-user', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {

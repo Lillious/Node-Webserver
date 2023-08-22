@@ -11,29 +11,23 @@
     --font-medium: 18px;
     --font-large: 24px;
 }
-
 ::-webkit-scrollbar {
     width: 8px;
 }
-
 ::-webkit-scrollbar-track {
     background: var(--black);
 }
-
 ::-webkit-scrollbar-thumb {
     background: #1EB980;
     border-radius: 10px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
     background: #25df9a;
 }
-
 input[type=text] {
     border: none;
     text-indent: 5px;
 }
-
 input:not([type=checkbox], [type=button]) {
     outline: none;
     border: none;
@@ -46,27 +40,22 @@ input:not([type=checkbox], [type=button]) {
     transition: 0.2s;
     user-select: none;
 }
-
 input[type=checkbox] {
     height: 15px;
     width: 15px;
 }
-
 input[type=email]:focus, input[type=password]:focus, input[type=text]:focus {
     transition: 0.2s;
     border-bottom: 1px solid #1EB980;
 }
-
 input[type=email]:hover:not(:focus), input[type=password]:hover:not(:focus), input[type=text]:hover:not(:focus) {
     transition: 0.2s;
     border-bottom: 1px solid #1EB980;
 }
-
 ::placeholder {
     color: #a5a5a5;
     text-indent: 5px;
 }
-
 button {
     background: transparent;
     color: #1EB980;
@@ -75,14 +64,12 @@ button {
     min-width: 150px;
     border: 1px solid #1EB980;
 }
-
 button:hover {
     transition: 0.2s;
     cursor: pointer;
     background: #1EB980;
     color: #ffffff;
 }
-
 body {
     font-family: Arial, Helvetica, sans-serif;
     margin: 0;
@@ -91,35 +78,28 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
 }
-
 a {
     text-decoration: none;
     color: #a5a5a5;
     transition: 0.2s;
 }
-
 hr {
     border: 1px solid #727272;
 }
-
 a:hover {
     color: #ffffff;
     transition: 0.2s;
     cursor: pointer;
 }
-
 .align-center {
     display: flex;
     align-items:center;
 }
-
 .justify-center {
     display: flex;
     justify-content: center;
     align-items: center;
 }
-
-
 #error {
     color: tomato;
     font-size: small;
@@ -129,7 +109,6 @@ a:hover {
     left: 0;
     padding-left: 10px;
 }
-
 #login-form, #register-form {
     display: flex;
     flex-direction: column;
@@ -142,7 +121,6 @@ a:hover {
     width: 450px;
     height: 550px;
 }
-
 #login-form .link {
     position: absolute;
     bottom: 25%;
@@ -150,7 +128,6 @@ a:hover {
     transform: translateX(-50%);
     font-size: 14px;
 }
-
 #error-page {
     display: flex;
     font-size: 28px;
@@ -162,22 +139,18 @@ a:hover {
     width: 100%;
     margin-top: 200px;
 }
-
 #remember-me-text {
     font-size: 14px;
     display: inline;
 }
-
 .link {
     font-size: 14px;
     color: #1e77d7;
     font-style: italic;
 }
-
 .link:hover {
     color: #278dfb;
 }
-
 #maintenance {
     position: fixed;
     text-align: center;
@@ -186,11 +159,9 @@ a:hover {
     right: 0;
     color: #1EB980;
 }
-
 #register {
     display: none;
 }
-
 #banner {
     position: fixed;
     top: 0;
@@ -206,13 +177,11 @@ a:hover {
     justify-content: center;
     display: none;
 }
-
 h1 {
     color: #1EB980;
     font-weight: normal;
     letter-spacing: 1px;
 }
-
 nav {
     user-select: none;
     position: fixed;
@@ -230,18 +199,15 @@ nav {
     font-size: var(--font-large);
     box-shadow: var(--box-shadow);
 }
-
 #logo {
     cursor: pointer;
 }
-
 #breadcrumbs {
     position: absolute;
     left: 100px;
     font-size: var(--font-small);
     color: var(--white);
 }
-
 #logout {
     cursor: pointer;
     font-size: var(--font-small);
@@ -250,26 +216,22 @@ nav {
     border: 1px solid transparent;
     transition: 0.2s ease-in-out;
 }
-
 #logout:hover {
     color: var(--red);
     border: 1px solid var(--red);
     transition: 0.2s ease-in-out;
 }
-
 #logout:active {
     color: var(--white);
     background: var(--red);
     border: 1px solid var(--red);
     transition: 0.2s ease-in-out;
 }
-
 #container {
     position: absolute;
     width: 100%;
     margin-top: 50px;
 }
-
 #side-menu-right {
     position: absolute;
     top: 55px;
@@ -281,7 +243,6 @@ nav {
     overflow-x: hidden;
     overflow-y: auto;
 }
-
 #info-panel {
     margin-top: 75px;
     margin-bottom: 25px;
@@ -293,7 +254,6 @@ nav {
     overflow-y: auto;
     overflow-x: hidden;
 }
-
 .category {
     margin-top: 55px;
     margin-bottom: 25px;
@@ -306,7 +266,6 @@ nav {
     box-shadow: var(--box-shadow);
     overflow-y: auto;
 }
-
 .category-title {
     user-select: none;
     position: sticky;
@@ -316,16 +275,14 @@ nav {
     color: var(--green);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
 }
-
 .category-title p {
     margin: 0;
     padding: 10px;
     font-size: var(--font-medium);
-    white-space: nowrap; 
+    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; 
+    text-overflow: ellipsis;
 }
-
 .category .item {
     user-select: none;
     display: inline-block;
@@ -338,58 +295,48 @@ nav {
     cursor: pointer;
     border: 1px solid var(--white);
     transition: 0.2s ease-in-out;
-    white-space: nowrap; 
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: center;
 }
-
 .category .item:hover {
     color: var(--green);
     border: 1px solid var(--green);
     transition: 0.2s ease-in-out;
 }
-
 .category .item:active:is(.category .item:hover) {
     color: var(--white);
     background: var(--green);
     transition: 0.2s ease-in-out;
 }
-
-
 .list-item {
     color: var(--white);
     padding: 10px;
     border-bottom: 1px solid var(--grey);
     transition: 0.2s ease-in-out;
 }
-
 .list-item p {
-    white-space: nowrap; 
+    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; 
+    text-overflow: ellipsis;
 }
-
 .list-item:hover {
     color: var(--green);
     transition: 0.2s ease-in-out;
 }
-
 .list-item-title {
     font-weight: bold;
     font-size: var(--font-medium);
 }
-
 .list-item-content {
     font-size: var(--font-small);
 }
-
 .list-item-content p {
-    white-space: nowrap; 
+    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; 
+    text-overflow: ellipsis;
 }
-
 .list-item-remove {
     float: right;
     user-select: none;
@@ -400,12 +347,10 @@ nav {
     color: var(--white);
     transition: 0.2s ease-in-out;
 }
-
 .list-item-remove:hover, .list-item-remove:active {
     color: var(--red);
     transition: 0.2s ease-in-out;
 }
-
 .progress-bar {
     position: absolute;
     right: 10px;
@@ -413,11 +358,36 @@ nav {
     height: 5px;
     background-color: var(--black);
 }
-
 .progress-bar .progress-bar-fill {
     height: 100%;
     background-color: var(--green);
     width: 50%;
+}
+
+#upload-file-button {
+    background: transparent;
+    color: #fff;
+    transition: 0.2s;
+    user-select: none;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+#upload-file-button:hover {
+    transition: 0.2s;
+    cursor: pointer;
+    color: #1EB980;
+}
+
+.fileName {
+    display: inline;
+}
+
+.fileSize {
+    font-size: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 /* Check if the screen is less than 980 pixels wide */
@@ -428,30 +398,26 @@ nav {
         right: 15px;
         width: unset;
         height: unset;
-    }
-
+   }
     #category-container {
         position: absolute;
         top: 680px;
         width: 100%;
-    }
-
+   }
     .category {
         width: unset;
         max-width: unset;
         margin-top: unset;
-    }
+   }
 }
-
 @media only screen and (max-width: 568px) {
     .category-content {
         display: flex;
         flex-direction: column;
         align-items: center;
-    }
-
+   }
     #info-panel {
         margin-left: 15px;
         margin-right: 15px;
-    }
+   }
 }

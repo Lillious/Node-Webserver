@@ -1,19 +1,13 @@
 {
   "name": "node-webserver",
-  "version": "1.2.6",
+  "version": "1.2.8-dev",
   "description": "An easy-to-use webserver powered by Node and ExpressJS",
   "main": "dist/src/app.js",
   "scripts": {
     "start": "npm update && npm fund && npm run build && node dist/src/app.js",
-    "clean": "rimraf dist/",
-    "build": "npm run clean && npm run lint && tsc && npm run copy-files && npm run minify",
-    "copy-files": "npm run copy-web && npm run copy-media && npm run copy-images && npm run copy-misc && npm run copy-config && copyfiles -u 1 ../files/** ./dist/src/",
-    "copy-web": "copyfiles -u 1 ./src/**/*.html ./src/**/**/*.html ./src/**/*.css ./src/**/*.sass ./dist/src/",
-    "copy-config": "copyfiles -u 1 ./src/**/*.cfg ./dist/src/",
-    "copy-misc": "copyfiles -u 1 ./src/**/*.txt ./src/**/*.json ./src/*.json ./dist/src/",
-    "copy-media": "copyfiles -u 1 ./src/**/*.mp3 ./src/**/*.mp4 ./src/**/*.wav ./src/**/*.mov ./src/**/*.ogg ./src/**/*.avi ./dist/src/",
-    "copy-images": "copyfiles -u 1 ./src/**/*.png ./src/**/*.ico ./src/**/*.jpg ./src/**/*.jpeg ./src/**/*.gif ./src/**/*.apng ./src/**/*.pdf ./src/**/*.raw ./dist/src/",
-    "minify": "node ./dist/src/minify.js",
+    "build": "npm run deploy && npm run lint && tsc && npm run minify",
+    "deploy": "node tools/deploy.js",
+    "minify": "node tools/minify.js",
     "lint": "eslint ./src/**/*.ts",
     "lint-fix": "eslint ./src/**/*.ts --fix"
   },
@@ -37,19 +31,22 @@
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "cookie-session": "^2.0.0",
-    "copyfiles": "^2.4.1",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-asyncify": "^1.1.0",
     "express-rate-limit": "^6.7.0",
     "hpp": "^0.2.3",
     "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
     "mysql2": "^3.2.0",
     "nodemailer": "^6.9.1",
     "path": "^0.12.7",
-    "rimraf": "^4.1.2",
     "tar": "^6.1.13",
     "typescript": "^4.9.5",
     "vhost": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/formidable": "^3.4.1",
+    "@types/multer": "^1.4.7"
   }
 }

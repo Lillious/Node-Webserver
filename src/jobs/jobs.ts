@@ -87,6 +87,7 @@ const job = {
         startImediately: true, // Run on startup
         start() {
             const tempStorageCopy = [...tempStorage];
+            const files = [] as string[];
             tempStorageCopy.forEach((file) => {
                 const fileBuffer = fs.readFileSync(file.file);
                 const hashSum = crypto.createHash('sha256');
@@ -94,9 +95,12 @@ const job = {
                 const hex = hashSum.digest('hex');
                 if (hex != file.hash) {
                     log.error(`File ${file.file} has been altered since last scan.`);
-                    email.send(process.env.EMAIL_ALERTS, 'Watch Dog Alert', `File ${file.file} has been altered since last scan.`);
+                    files.push(file.file);
                 }
             });
+            if (files.length > 0) {
+                email.send(process.env.EMAIL_ALERTS, 'Watch Dog Alert', `The following files have been altered since the last scan: ${files.join(', ')}`);
+            }
             this.initialize();
         },
         initialize() {
