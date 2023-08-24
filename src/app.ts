@@ -214,6 +214,11 @@ app.use(function(req: any, res: any, next: any) {
 /* Start Unsecure Routing */
 /* Routes that do not require authentication */
 
+// Files middleware for secure files
+app.use('/files/secure', (req: any, res: any) => {
+    res.sendFile(path.join(__dirname, '/errors/403.html'));
+});
+
 // Files
 app.use(vhost('files.*.*', express.static(path.join(__dirname, '../../files'), {
     maxAge: 2.88e+7
@@ -237,6 +242,11 @@ app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), {
 app.use(vhost('localhost', express.static(path.join(__dirname, '/root'), {
     maxAge: 2.88e+7
 })));
+
+// Reject root subdomain requests if they aren't being redirected
+app.use(vhost('*.*.*', (req: any, res: any, next: any) => {
+    return;
+}));
 
 // Login Post Request
 app.post('/login', (req: any, res: any) => {
@@ -644,6 +654,7 @@ app.get('/api/files', (req: any, res: any) => {
                     res.status(500).send('Internal Server Error');
                 } else {
                     files.forEach((file: any) => {
+                        if (file === 'secure') return;
                         const stats = fs.statSync(path.join(__dirname, '../../files', file));
                         const size = formatFileSize(stats.size) as string;
                         _files.push({name: file, size: `${size}`} as any);

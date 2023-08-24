@@ -139,5 +139,7 @@ dist
 
 #Backup files
 backups/
-files/*
-!files/.gitkeep
+
+files/**
+!files/secure/
+!files/secure/.gitkeep
