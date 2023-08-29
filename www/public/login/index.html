@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <link rel="icon" href="../images/node.ico" type="image/x-icon">
+        <title>Login</title>
+        <!-- Preload css -->
+        <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style" onload="this.rel='stylesheet'">
+        <link rel="preload" href="../css/style.css" as="style" onload="this.rel='stylesheet'">
+        <link rel="stylesheet" href="../css/style.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+        <!-- Preload js -->
+        <script rel="preload" src="./js/register.js" as="script" onload="this.rel='script'"></script>
+        <script defer async src="./js/register.js"></script>
+    </head>
+    <body>
+        <nav>
+            <div id="logo" onclick="location.href='/cpanel';">cPanel</div>
+            <div id="breadcrumbs">&#8250; login</div>
+        </nav>
+        <div id="container-login">
+            <div id="login-form">
+                <h1>LOGIN</h1>
+                <form action="/login" method="post">
+                    <input type="email" name="email" id="email" placeholder="Email" required autocomplete="off" spellcheck="false" autofocus>
+                    <br><br>
+                    <input type="password" name="password" id="password" placeholder="Password" required autocomplete="off" spellcheck="false">
+                    <br><br>
+                    <center>
+                        <button type="submit" value="Login">SUBMIT</button>
+                        <br><br>
+                        <a class="link" id="register" href="/register">Don't have an account?</a>
+                    </center>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

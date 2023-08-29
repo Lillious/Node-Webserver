@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href="../images/node.ico" type="image/x-icon">
+        <title>Register</title>
+        <!-- Preload css -->
+        <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style" onload="this.rel='stylesheet'">
+        <link rel="preload" href="../css/style.css" as="style" onload="this.rel='stylesheet'">
+        <link rel="stylesheet" href="../css/style.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    </head>
+    <body>
+        <nav>
+            <div id="logo" onclick="location.href='/cpanel';">cPanel</div>
+            <div id="breadcrumbs">&#8250; register</div>
+        </nav>
+        <div id="container-register">
+            <div id="register-form">
+                <h1>Register</h1>
+                <form action="/register" method="post">
+                    <input type="email" name="email" id="email" placeholder="Email" required autocomplete="off" spellcheck="false" autofocus>
+                    <br><br>
+                    <input type="password" name="password" id="password" placeholder="Password" required autocomplete="off" spellcheck="false">
+                    <br><br>
+                    <input type="password" name="password2" id="password2" placeholder="Confirm Password" required autocomplete="off" spellcheck="false">
+                    <br><br>
+                    <center>
+                        <button type="submit" value="Register">Register</button>
+                        <br><br>
+                        <a class="link" href="/login">Already have an account?</a>
+                    </center>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

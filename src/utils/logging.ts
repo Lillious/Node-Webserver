@@ -28,7 +28,7 @@ export const debug = (message: string) => {
     WriteLogFile(message)
 };
 
-const logDir = path.join(__dirname, '../../logs');
+const logDir = path.join(__dirname, '../logs');
 if (!fs.existsSync(logDir)) {
     try {
         fs.mkdirSync(logDir);
@@ -43,7 +43,7 @@ const timestamp = () => {
 
 function WriteLogFile (message: string) {
     try {
-        fs.appendFileSync(path.join(__dirname, '../../logs/debug.log'), `<b>${timestamp()}</b> - ${message}\n`);
+        fs.appendFileSync(path.join(__dirname, '../logs/debug.log'), `<b>${timestamp()}</b> - ${message}\n`);
     } catch (err) {
         error('Failed to write to debug.log');
     }

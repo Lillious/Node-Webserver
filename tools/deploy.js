@@ -3,9 +3,8 @@ import Copy from "./copy.js";
 import path from "path";
 
 console.log("Starting deployment");
-Cleanup(path.join(process.cwd(), 'dist', 'src')).then(() => {
-    // Create the dist/src folder
-    Copy(path.join(process.cwd(), 'src'), path.join(process.cwd(), 'dist', 'src')).then(() => {
+Cleanup(path.join(process.cwd(), 'dist')).then(() => {
+    Copy(path.join(process.cwd(), 'src'), path.join(process.cwd(), 'dist')).then(() => {
         console.log('Deployment complete');
     }).catch((err) => {
         throw new Error(err);

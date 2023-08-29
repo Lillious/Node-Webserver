@@ -32,10 +32,10 @@ const job = {
         interval: 3.6e+6, // 1 hour
         maxBackups: 5, // Keep the last 5 backups
         start() {
-            const backupDir = path.join(__dirname, '..', '..', '..', 'backups');
+            const backupDir = path.join(__dirname, '..', '..', 'backups');
             const backupFile = path.join(backupDir, 'temp.bak');
             if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir);
-            const directoryToBackup = path.join(__dirname, '..', '..', '..', 'src');
+            const directoryToBackup = path.join(__dirname, '..', '..', 'dist');
             if (!fs.existsSync(directoryToBackup)) throw new Error(`Unable to locate ${directoryToBackup}`);
             tar.c({
                 gzip: true,
@@ -106,7 +106,7 @@ const job = {
         initialize() {
             tempStorage.length = 0;
             files.length = 0;
-            getFiles(path.join(__dirname, '..', '..', 'src')).then((files) => {
+            getFiles(path.join(__dirname, '..', '..', 'dist')).then((files) => {
                 files.forEach((file) => {
                     const fileBuffer = fs.readFileSync(file);
                     const hashSum = crypto.createHash('sha256');

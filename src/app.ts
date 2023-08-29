@@ -29,7 +29,7 @@ import multer from 'multer';
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        cb(null, path.join(__dirname, '../../files'));
+        cb(null, path.join(__dirname, '../files'));
     },
     filename: function(req, file, cb) {
         cb(null, file.originalname);
@@ -37,7 +37,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
-    dest: path.join(__dirname, '../../files'),
+    dest: path.join(__dirname, '../files'),
     storage: storage,
     limits: {
         fileSize: 1e+10
@@ -216,30 +216,47 @@ app.use(function(req: any, res: any, next: any) {
 
 // Files middleware for secure files
 app.use('/files/secure', (req: any, res: any) => {
-    res.sendFile(path.join(__dirname, '/errors/403.html'));
+    res.sendFile(path.join(__dirname, '../www/public/errors/403.html'));
+});
+
+// Initially Deny Access to Registration Page
+app.use('/register', (req: any, res: any) => {
+    getSetting('registration').then((value: any) => {
+        if (value === 'true') {
+            res.status(200);
+            res.sendFile(path.join(__dirname, '../www/public/register/index.html'));
+        } else {
+            res.status(404);
+            res.sendFile(path.join(__dirname, '../www/public/errors/404.html'));
+        }
+    });
 });
 
 // Files
-app.use(vhost('files.*.*', express.static(path.join(__dirname, '../../files'), {
+app.use(vhost('files.*.*', express.static(path.join(__dirname, '../files'), {
     maxAge: 2.88e+7
 })));
 
-app.use('/files', express.static(path.join(__dirname, '../../files'), {
+app.use('/files', express.static(path.join(__dirname, '../files'), {
     maxAge: 2.88e+7
 }));
 
 // Login Page
-app.use('/login', express.static(path.join(__dirname, '/login'), {
+app.use('/login', express.static(path.join(__dirname, '../www/public/login/'), {
+    maxAge: 2.88e+7
+}));
+
+app.use('/', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 }));
 
 // Home Page
-app.use(vhost('*.*', express.static(path.join(__dirname, '/root'), {
+app.use(vhost('*.*', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 })));
 
 // Localhost
-app.use(vhost('localhost', express.static(path.join(__dirname, '/root'), {
+app.use(vhost('localhost', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 })));
 
@@ -282,31 +299,6 @@ app.post('/login', (req: any, res: any) => {
     } else {
         res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);
     }
-});
-
-// Check if registration is enabled
-app.get('/register', (req: any, res: any) => {
-    getSetting('registration').then((value: any) => {
-        if (value === 'true') {
-            res.status(200);
-            res.sendFile(path.join(__dirname, '/register/index.html'));
-        } else {
-            res.status(404);
-            res.sendFile(path.join(__dirname, '/errors/404.html'));
-        }
-    });
-});
-
-// Check if maintenance mode is enabled
-app.get('/maintenance', (req: any, res: any) => {
-    getSetting('maintenance').then((value: any) => {
-        if (value === 'true') {
-            res.status(200).send(true);
-        } else {
-            res.status(404);
-            res.sendFile(path.join(__dirname, '/errors/404.html'));
-        }
-    });
 });
 
 // Register Post Request
@@ -423,37 +415,37 @@ app.use(function(req: any, res: any, next: any) {
 });
 
 // Cpanel
-app.use('/cpanel', express.static(path.join(__dirname, '/cpanel'), {
+app.use('/cpanel', express.static(path.join(__dirname, '../www/cpanel/root/'), {
     maxAge: 2.88e+7
 }));
 
 // File browser
-app.use('/cpanel/browser', express.static(path.join(__dirname, '/cpanel/browser'), {
+app.use('/cpanel/browser', express.static(path.join(__dirname, '../www/cpanel/browser'), {
     maxAge: 2.88e+7
 }));
 
 // Users
-app.use('/cpanel/users', express.static(path.join(__dirname, '/cpanel/users'), {
+app.use('/cpanel/users', express.static(path.join(__dirname, '../www/cpanel/users'), {
     maxAge: 2.88e+7
 }));
 
 // Logs
-app.use('/cpanel/logs', express.static(path.join(__dirname, '/cpanel/logging'), {
+app.use('/cpanel/logs', express.static(path.join(__dirname, '../www/cpanel/logging'), {
     maxAge: 2.88e+7
 }));
 
 // Security Definitions
-app.use('/cpanel/security', express.static(path.join(__dirname, '/cpanel/security'), {
+app.use('/cpanel/security', express.static(path.join(__dirname, '../www/cpanel/security'), {
     maxAge: 2.88e+7
 }));
 
 // Redirect rules
-app.use('/cpanel/redirects', express.static(path.join(__dirname, '/cpanel/redirects'), {
+app.use('/cpanel/redirects', express.static(path.join(__dirname, '../www/cpanel/redirects'), {
     maxAge: 2.88e+7
 }));
 
 // Blocked IPs
-app.use('/cpanel/blocked-ips', express.static(path.join(__dirname, '/cpanel/blocked-ips'), {
+app.use('/cpanel/blocked-ips', express.static(path.join(__dirname, '../www/cpanel/blocked-ips'), {
     maxAge: 2.88e+7
 }));
 
@@ -625,10 +617,11 @@ app.get('/api/logs', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {
-            const file = fs.readFileSync(path.join(__dirname, '../logs/debug.log'), 'utf8');
+            log.info(path.join(__dirname, './logs/debug.log'));
+            const file = fs.readFileSync(path.join(__dirname, './logs/debug.log'), 'utf8');
             const rows: string[] = [];
             const lines = file.split('\n');
-            const start = lines.length - 50;
+            const start = lines.length > 50 ? lines.length - 50 : 0;
             for (let i = start; i < lines.length; i++) {
                 if (!lines[i].startsWith('#') || lines[i] === '') {
                     rows.push(lines[i]);
@@ -648,14 +641,14 @@ app.get('/api/files', (req: any, res: any) => {
     .then((results: any) => {
         if (results === 1) {
             const _files: string[] = [];
-            fs.readdir(path.join(__dirname, '../../files'), (err: any, files: any) => {
+            fs.readdir(path.join(__dirname, '../files'), (err: any, files: any) => {
                 if (err) {
                     log.error(err);
                     res.status(500).send('Internal Server Error');
                 } else {
                     files.forEach((file: any) => {
                         if (file === 'secure') return;
-                        const stats = fs.statSync(path.join(__dirname, '../../files', file));
+                        const stats = fs.statSync(path.join(__dirname, '../files', file));
                         const size = formatFileSize(stats.size) as string;
                         _files.push({name: file, size: `${size}`} as any);
                     });
@@ -739,7 +732,7 @@ app.get('/api/blocked-ips', (req: any, res: any) => {
         if (results === 1) {
             query('SELECT * FROM blocked_ips')
                 .then((results: any) => {
-                    const start = results.length - 100;
+                    const start = results.length > 100 ? results.length - 100 : 0;
                     for (let i = start; i < results.length; i++) {
                         rows.push(results[i].ip);
                     }
@@ -784,10 +777,10 @@ app.delete('/api/remove-file', (req: any, res: any) => {
     .then((results: any) => {
         if (results === 1) {
             // Check if the file exists
-            if (fs.existsSync(path.join(__dirname, '../../files', req.body.file))) {
+            if (fs.existsSync(path.join(__dirname, '../files', req.body.file))) {
                 // Remove it
-                fs.unlinkSync(path.join(__dirname, '../../files', req.body.file));
-                if (fs.readdirSync(path.join(__dirname, '../../files')).length === 0) {
+                fs.unlinkSync(path.join(__dirname, '../files', req.body.file));
+                if (fs.readdirSync(path.join(__dirname, '../files')).length === 0) {
                     res.status(201).send('OK');
                 } else {
                     res.status(200).send('OK');
@@ -885,7 +878,7 @@ app.post('/reset-password', (req: any, res: any) => {
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    res.status(404).sendFile(path.join(__dirname, '/errors/404.html'));
+    res.status(404).sendFile(path.join(__dirname, '../www/public/errors/404.html'));
 });
 
 function shuffle(str: string, length: number) {
@@ -909,7 +902,7 @@ function createSession (req: any, res: any, _email?: string) {
             res.clearCookie('email');
             res.clearCookie('session');
             res.status(403);
-            res.sendFile(path.join(__dirname, 'errors/403.html'));
+            res.sendFile(path.join(__dirname, '../www/public/errors/403.html'));
             return;
         } else {
             query('SELECT email FROM accounts WHERE email = ?', [_email]).then((results: any) => {
@@ -946,5 +939,4 @@ function createSession (req: any, res: any, _email?: string) {
         log.error(err);
         res.redirect('/login');
     });
-
 }

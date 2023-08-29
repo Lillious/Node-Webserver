@@ -2,14 +2,14 @@
   "name": "node-webserver",
   "version": "1.2.8-dev",
   "description": "An easy-to-use webserver powered by Node and ExpressJS",
-  "main": "dist/src/app.js",
+  "main": "dist/app.js",
   "scripts": {
-    "start": "npm update && npm fund && npm run build && node dist/src/app.js",
-    "build": "npm run deploy && npm run lint && tsc && npm run minify",
+    "start": "npm run build && node dist/app.js",
+    "build": "npm run deploy && tsc && npm run minify",
     "deploy": "node tools/deploy.js",
     "minify": "node tools/minify.js",
     "lint": "eslint ./src/**/*.ts",
-    "lint-fix": "eslint ./src/**/*.ts --fix"
+    "lint-fix": "eslint ./dist/**/*.ts"
   },
   "type": "module",
   "keywords": [],

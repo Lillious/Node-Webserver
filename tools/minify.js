@@ -12,7 +12,7 @@ function getFiles(directory) {
             if (fs.statSync(filePath).isDirectory())            
                 getFiles(filePath);
             else {
-                if (file.endsWith('.js') || file.endsWith('.css') || file.endsWith('.html')) {
+                if (file.endsWith('.js')) {
                     files.push(filePath);
                 }
             }
