@@ -5,9 +5,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import * as readline from 'node:readline/promises';
 import * as log from '../utils/logging.js';
-const settings = path.join(__dirname, '..', 'config', 'settings.cfg');
+const settings = path.join(__dirname, '..', '..', 'config', 'settings.cfg');
 
-if (!fs.existsSync(path.join(__dirname, '..', 'config'))) fs.mkdirSync(path.join(__dirname, '..', 'config'));
+if (!fs.existsSync(path.join(__dirname, '..', '..', 'config'))) {
+    fs.mkdirSync(path.join(__dirname, '..', '..', 'config'));
+}
 if (!fs.existsSync(settings)) {
     fs.writeFileSync(settings, 'registration -> false\n');
     fs.writeFileSync(settings, 'maintenance -> false\n');

@@ -74,23 +74,23 @@ NODE_ENV (development | production)
 ## Creating a subdomain (DNS required)
 Location: src/app.ts
 
-To create a subdomain, you need to create a new folder in the `/src` directory and then set up routing for the subdomain in the `app.ts` file.
+To create a subdomain, you need to create a new folder in the `www` directory and then set up routing for the subdomain in the `app.ts` file.
 Add a new line of code to the section to set up routing for your new subdomain. The code should look like this:
 
 ```ts
-app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/mynewsubdomain'))));
+app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/www/mynewsubdomain'))));
 ```
 
 ## Adding additional domains
 Location: src/app.ts
 
-The following code defines an array of domains that can be hosted by the application. To add a new domain, the `domains` array must be updated with the new domain's name. Additionally, a folder with the same name as the domain must be created in the `src/` directory, and an `index.html` file must be placed in the root directory of the new folder.
+The following code defines an array of domains that can be hosted by the application. To add a new domain, the `domains` array must be updated with the new domain's name. Additionally, a folder with the same name as the domain must be created in the `www` directory, and an `index.html` file must be placed in the root directory of the new folder.
 
 ```ts
 const domains: string['mydomain.com, example.com'] = [];
 ```
 ```
-├── src/
+├── www/
 │   ├── mydomain.com/
 │   │   └── index.html
 │   └── example.com/
@@ -175,7 +175,7 @@ myFirstJob: {
 Here, myFirstJob is the name of the job object that you want to create. You can replace it with a name of your choice. The name property is a string that describes the job. The enabled property is a boolean that specifies whether the job is enabled or disabled. The interval property is a number that represents the time interval at which the job will execute. The start() function is the code that will be executed when the job is started.
 
 ## Redirects
-Location: src/config/redirects.cfg
+Location: config/redirects.cfg
 
 Adding/removing a redirect programmatically
 ```ts
@@ -185,7 +185,7 @@ removeRedirect(from: string);
 ```
 
 ## Settings
-Location: src/config/settings.cfg
+Location: config/settings.cfg
 
 ### Update Settings
 ```ts
@@ -204,7 +204,7 @@ getSetting(setting: string).then((value: any) => {
 ```
 
 ## Security Definitions
-Location: src/config/security.cfg
+Location: config/security.cfg
 This file contains a list of commonly used attack vectors that determine malformed requests
 Example:
 ```
@@ -218,6 +218,8 @@ showLogin.cc
 ```
 
 ## Files
-Location: src/files
-You can choose to add publicly accessible files to the location listed above for them to be automatically copied over to dist/src/files during the deployment.
-Files can be accessed at files.yourdomain.com(DNS required) or yourdomain.com/files
+Location: /files
+Secure Location: /files/secure
+You can choose to files to the directories above.
+Publicly accessible files can be accessed at files.yourdomain.com(DNS required) or yourdomain.com/files
+Secure files that are not accessible by any means and just live on the server as a storage device are located in the Secure Location directory.
