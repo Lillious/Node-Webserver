@@ -689,7 +689,7 @@ app.get('/api/security-definitions', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {
-            const file = fs.readFileSync(path.join(__dirname, 'config/security.cfg'), 'utf8');
+            const file = fs.readFileSync(path.join(__dirname, '../config/security.cfg'), 'utf8');
             const rows: string[] = [];
             file.split('\n').forEach((line: any) => {
                 if (!line.startsWith('#') || line === '') {
@@ -709,7 +709,7 @@ app.get('/api/redirect-rules', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {
-            const file = fs.readFileSync(path.join(__dirname, 'config/redirects.cfg'), 'utf8');
+            const file = fs.readFileSync(path.join(__dirname, '../config/redirects.cfg'), 'utf8');
             const rows: string[] = [];
             file.split('\n').forEach((line: any) => {
                 if (!line.startsWith('#') || line === '') {

@@ -4,7 +4,7 @@ export default function Cleanup (sourceDir) {
     return new Promise((resolve, reject) => {
         try {
             if (!fs.existsSync(sourceDir)) resolve();
-            const excludedFolders = ['config', 'files'];
+            const excludedFolders = [];
             const folders = fs.readdirSync(sourceDir);
             for (const folder of folders) {
                 if (!excludedFolders.includes(folder)) {

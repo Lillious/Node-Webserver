@@ -5,9 +5,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import * as readline from 'node:readline/promises';
 import * as log from './logging.js';
-const redirects = path.join(__dirname, '..', 'config', 'redirects.cfg');
+const redirects = path.join(__dirname, '..', '..', 'config', 'redirects.cfg');
 
-if (!fs.existsSync(path.join(__dirname, '..', 'config'))) fs.mkdirSync(path.join(__dirname, '..', 'config'));
+if (!fs.existsSync(path.join(__dirname, '..', '..', 'config'))) fs.mkdirSync(path.join(__dirname, '..', '..', 'config'));
 if (!fs.existsSync(redirects)) {
     fs.writeFileSync(redirects, '# Redirect rules\n');
     fs.writeFileSync(redirects, '# Redirects must be written in the below format otherwise they will be skipped\n');
@@ -71,16 +71,3 @@ export function removeRedirect (from: string): Promise<any> {
         });
     });
 }
-
-/*
-    if (!from.endsWith('/')) from += '/';
-    fs.readFile(redirects, 'utf8', (err, data) => {
-        if (err) return log.error('Error reading redirects.cfg');
-        const lines = data.split('\n');
-        const newLines = lines.filter((line: string) => !line.startsWith(from));
-        fs.writeFile(redirects, newLines.join('\n'), (err) => {
-            if (err) return log.error('Error writing redirects.cfg');
-            log.info(`Removed redirect ${from}`);
-        });
-    });
-*/

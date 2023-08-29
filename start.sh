@@ -1,6 +1,6 @@
 clear
 echo "Deployment Started"
-pm2 stop app 2>&1 >/dev/null
+pm2 stop Webserver 2>&1 >/dev/null
 echo "Removing Old Files"
 pm2 delete Webserver 2>&1 >/dev/null
 echo "Building Application"
