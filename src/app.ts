@@ -246,17 +246,17 @@ app.use('/login', express.static(path.join(__dirname, '../www/public/login/'), {
     maxAge: 2.88e+7
 }));
 
-app.use('/', express.static(path.join(__dirname, '../www/public/'), {
+app.use('/', express.static(path.join(__dirname, '../www/public/login'), {
     maxAge: 2.88e+7
 }));
 
 // Home Page
-app.use(vhost('*.*', express.static(path.join(__dirname, '../www/public/'), {
+app.use(vhost('*.*', express.static(path.join(__dirname, '../www/public/login'), {
     maxAge: 2.88e+7
 })));
 
 // Localhost
-app.use(vhost('localhost', express.static(path.join(__dirname, '../www/public/'), {
+app.use(vhost('localhost', express.static(path.join(__dirname, '../www/public/login'), {
     maxAge: 2.88e+7
 })));
 
