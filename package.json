@@ -46,6 +46,7 @@
     "vhost": "^3.0.2"
   },
   "devDependencies": {
+    "@types/connect-timeout": "^0.0.37",
     "@types/formidable": "^3.4.1",
     "@types/multer": "^1.4.7"
   }

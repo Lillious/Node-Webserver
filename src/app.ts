@@ -62,7 +62,6 @@ const upload = multer({
 import filter from './plugins/security.js';
 import { redirect, removeRedirect, addRedirect } from './utils/redirect.js';
 import { getSetting, updateSetting } from './utils/settings.js';
-import { error } from 'node:console';
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -246,17 +245,17 @@ app.use('/login', express.static(path.join(__dirname, '../www/public/login/'), {
     maxAge: 2.88e+7
 }));
 
-app.use('/', express.static(path.join(__dirname, '../www/public/login'), {
+app.use('/', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 }));
 
 // Home Page
-app.use(vhost('*.*', express.static(path.join(__dirname, '../www/public/login'), {
+app.use(vhost('*.*', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 })));
 
 // Localhost
-app.use(vhost('localhost', express.static(path.join(__dirname, '../www/public/login'), {
+app.use(vhost('localhost', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 })));
 
@@ -878,6 +877,10 @@ app.post('/reset-password', (req: any, res: any) => {
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    if (req.originalUrl === '/') {
+        res.redirect('/login');
+        return;
+    }
     res.status(404).sendFile(path.join(__dirname, '../www/public/errors/404.html'));
 });
 
