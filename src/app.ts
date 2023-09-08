@@ -111,9 +111,6 @@ if (cluster.isPrimary) {
         .then(() => {
             log.info(`Database Connection Successful`);
         })
-        .catch((err: any) => {
-            log.error(`Database Connection Failed\n${err}`);
-        });
     // Fork workers
     log.info(`Primary ${process.pid} is running on port ${port}`);
     for (let i = 0; i < os.availableParallelism(); i++) {
@@ -632,6 +629,22 @@ app.get('/api/logs', (req: any, res: any) => {
     }).catch((err: any) => {
         log.error(err);
     });
+});
+
+app.get('/api/version', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    try {
+        log.info('Checking for updates...');
+        const file = fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8');
+        const json = JSON.parse(file);
+        const result = {
+            version: json.version,
+        }
+        res.status(200).send(result);
+    } catch (err: any) {
+        log.error(err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 app.get('/api/files', (req: any, res: any) => {

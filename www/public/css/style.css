@@ -38,6 +38,7 @@ input:not([type=checkbox], [type=button]) {
     background: transparent;
     text-indent: 5px;
     transition: 0.2s;
+    -webkit-user-select: none;
     user-select: none;
 }
 input[type=checkbox] {
@@ -183,6 +184,7 @@ h1 {
     letter-spacing: 1px;
 }
 nav {
+    -webkit-user-select: none;
     user-select: none;
     position: fixed;
     top: 0;
@@ -267,6 +269,7 @@ nav {
     overflow-y: auto;
 }
 .category-title {
+    -webkit-user-select: none;
     user-select: none;
     position: sticky;
     top: 0;
@@ -284,6 +287,7 @@ nav {
     text-overflow: ellipsis;
 }
 .category .item {
+    -webkit-user-select: none;
     user-select: none;
     display: inline-block;
     padding: 20px;
@@ -339,6 +343,7 @@ nav {
 }
 .list-item-remove {
     float: right;
+    -webkit-user-select: none;
     user-select: none;
     margin-top: -30px;
     margin-right: 15px;
@@ -368,6 +373,7 @@ nav {
     background: transparent;
     color: #fff;
     transition: 0.2s;
+    -webkit-user-select: none;
     user-select: none;
     position: absolute;
     top: 10px;

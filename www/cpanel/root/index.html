@@ -11,12 +11,15 @@
         <!-- Preload js -->
         <script rel="preload" src="./js/serverinfo.js" as="script" onload="this.rel='script'"></script>
         <script rel="preload" src="../js/logout.js" as="script" onload="this.rel='script'"></script>
+        <script rel="preload" src="./js/version.js" as="script" onload="this.rel='script'"></script>
         <script defer async src="./js/serverinfo.js"></script>
         <script defer async src="../js/logout.js"></script>
+        <script defer async src="./js/version.js"></script>
     </head>
     <body>
         <nav>
             <div id="logo" onclick="location.href='/cpanel';">cPanel</div>
+            <div id="breadcrumbs" class="version"></div>
             <div id="logout">Logout</div>
         </nav>
         <div id="container">

@@ -13,6 +13,7 @@ export default function query (sql: string, values?: any) : any {
     return new Promise((resolve, reject) => {
         pool.getConnection((err: any, connection: any) => {
             if (err) {
+                err = new Error('Error connecting to database');
                 return reject(err);
             }
             connection.query(mysql.format(sql, values), (err: any, rows: any) => {
