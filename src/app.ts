@@ -182,31 +182,6 @@ app.use(function(req: any, res: any, next: any) {
     }
 });
 
-// Support for multiple domains on one server
-const domains: string[] = [];
-
-app.use(function(req: any, res: any, next: any) {
-    // If no domains are set, skip this
-    if (!domains || domains.length === 0) return next();
-    domains.forEach(domain => {
-        if (req.headers.host === domain) {
-            log.info(`Redirecting ${req.headers.host} to /${domain}`);
-            app.use(`/${domain}`, express.static(path.join(__dirname, `/${domain}`), {
-                maxAge: 2.88e+7
-            }));
-            // Check if the file exists in the domain folder and serve it if it exists
-            if (fs.existsSync(path.join(__dirname, `/${domain}${req.path}`))) {
-                res.sendFile(path.join(__dirname, `/${domain}${req.path}`));
-            } else {
-                // Otherwise, send the index.html file
-                res.sendFile(path.join(__dirname, `/${domain}/index.html`));
-            }
-        } else {
-            next();
-        }
-    });
-});
-
 /* Start Unsecure Routing */
 /* Routes that do not require authentication */
 
@@ -228,30 +203,32 @@ app.use('/register', (req: any, res: any) => {
     });
 });
 
-// Files
+// Files subdomain route
 app.use(vhost('files.*.*', express.static(path.join(__dirname, '../files'), {
-    maxAge: 2.88e+7
+    maxAge: 0
 })));
 
+// Files route
 app.use('/files', express.static(path.join(__dirname, '../files'), {
-    maxAge: 2.88e+7
+    maxAge: 0
 }));
 
-// Login Page
+// Login Page Route
 app.use('/login', express.static(path.join(__dirname, '../www/public/login/'), {
     maxAge: 2.88e+7
 }));
 
+// Root directory
 app.use('/', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 }));
 
-// Home Page
+// Root subdomain
 app.use(vhost('*.*', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 })));
 
-// Localhost
+// Localhost root directory
 app.use(vhost('localhost', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 })));
@@ -261,7 +238,7 @@ app.use(vhost('*.*.*', (req: any, res: any, next: any) => {
     return;
 }));
 
-// Login Post Request
+// Login
 app.post('/login', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     res.clearCookie('session');
@@ -297,7 +274,7 @@ app.post('/login', (req: any, res: any) => {
     }
 });
 
-// Register Post Request
+// Register
 app.post('/register', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     getSetting('registration').then((value: any) => {
@@ -332,6 +309,7 @@ app.post('/register', (req: any, res: any) => {
         });
 });
 
+// 2FA
 app.post('/2fa', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const body = req.body;
@@ -354,6 +332,7 @@ app.post('/2fa', (req: any, res: any) => {
         });
 });
 
+// Reset Password
 app.post('/api/reset-password', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');    
     const body = req.body;
@@ -380,6 +359,7 @@ app.post('/api/reset-password', (req: any, res: any) => {
     });
 });
 
+// Resend 2FA Code
 app.post('/2fa/resend', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     createSession(req, res, req.cookies.email);
@@ -388,8 +368,11 @@ app.post('/2fa/resend', (req: any, res: any) => {
 /* Start Secure Routing */
 /* Routes that require authentication */
 
+// Authented Routes Middleware
 app.use(function(req: any, res: any, next: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    // Check if path exists
+    if (!fs.existsSync(path.join(__dirname, '../www/public', req.path))) return res.status(404).sendFile(path.join(__dirname, '../www/public/errors/404.html'));
     // Verify session and email cookies exist
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
     // Check if the email is valid
@@ -410,41 +393,42 @@ app.use(function(req: any, res: any, next: any) {
         });
 });
 
-// Cpanel
+// Cpanel Route
 app.use('/cpanel', express.static(path.join(__dirname, '../www/cpanel/root/'), {
     maxAge: 2.88e+7
 }));
 
-// File browser
+// File browser Route
 app.use('/cpanel/browser', express.static(path.join(__dirname, '../www/cpanel/browser'), {
     maxAge: 2.88e+7
 }));
 
-// Users
+// Users Route
 app.use('/cpanel/users', express.static(path.join(__dirname, '../www/cpanel/users'), {
     maxAge: 2.88e+7
 }));
 
-// Logs
+// Logs Route
 app.use('/cpanel/logs', express.static(path.join(__dirname, '../www/cpanel/logging'), {
     maxAge: 2.88e+7
 }));
 
-// Security Definitions
+// Security Definitions Route
 app.use('/cpanel/security', express.static(path.join(__dirname, '../www/cpanel/security'), {
     maxAge: 2.88e+7
 }));
 
-// Redirect rules
+// Redirect rules Route
 app.use('/cpanel/redirects', express.static(path.join(__dirname, '../www/cpanel/redirects'), {
     maxAge: 2.88e+7
 }));
 
-// Blocked IPs
+// Blocked IPs Route
 app.use('/cpanel/blocked-ips', express.static(path.join(__dirname, '../www/cpanel/blocked-ips'), {
     maxAge: 2.88e+7
 }));
 
+// Toggle registration
 app.post('/api/toggle-registration', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
@@ -468,6 +452,7 @@ app.post('/api/toggle-registration', (req: any, res: any) => {
     });
 });
 
+// Add Redirect
 app.post('/api/add-redirect', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
@@ -491,6 +476,7 @@ app.post('/api/add-redirect', (req: any, res: any) => {
     });
 });
 
+// Remove Redirect
 app.delete('/api/remove-redirect', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
@@ -511,6 +497,28 @@ app.delete('/api/remove-redirect', (req: any, res: any) => {
     });
 });
 
+// Get Redirects
+app.get('/api/redirect-rules', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const file = fs.readFileSync(path.join(__dirname, '../config/redirects.cfg'), 'utf8');
+            const rows: string[] = [];
+            file.split('\n').forEach((line: any) => {
+                if (!line.startsWith('#') || line === '') {
+                    rows.push(line);
+                }
+            });
+            res.send(rows);
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+// Logout
 app.post('/logout', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     query('DELETE FROM sessions WHERE session = ?', [req.cookies.session])
@@ -526,6 +534,7 @@ app.post('/logout', (req: any, res: any) => {
         });
 });
 
+// Get Current User Info
 app.get('/api/@me', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     query('SELECT email FROM accounts WHERE email = ?', [req.cookies.email])
@@ -542,29 +551,7 @@ app.get('/api/@me', (req: any, res: any) => {
         });
 });
 
-app.get('/api/serverinfo', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    const serverinfo = {
-        ip: req.socket.remoteAddress,
-        directory: path.basename(__dirname),
-        domain: req.headers.host,
-        protocol: req.headers['x-forwarded-proto'] || req.protocol
-    };
-    res.status(200).send(serverinfo);
-});
-
-app.get('/api/fileusage', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    fs.statfs('/', (err: any, stats: any) => {
-        const data = {
-            total: stats.blocks * stats.bsize,
-            free: stats.bfree * stats.bsize,
-            used: (stats.blocks - stats.bfree) * stats.bsize,
-        };
-        res.status(200).send(data);
-    });
-});
-
+// Get Users
 app.get('/api/users', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     authentication.checkAccess(req.cookies.email)
@@ -586,204 +573,7 @@ app.get('/api/users', (req: any, res: any) => {
     });
 });
 
-app.get('/api/logs', (req: any, res: any) => {
-    authentication.checkAccess(req.cookies.email)
-    .then((results: any) => {
-        if (results === 1) {
-            const file = fs.readFileSync(path.join(__dirname, './logs/debug.log'), 'utf8');
-            const rows: string[] = [];
-            const lines = file.split('\n');
-            const start = lines.length > 50 ? lines.length - 50 : 0;
-            for (let i = start; i < lines.length; i++) {
-                if (!lines[i].startsWith('#') || lines[i] === '') {
-                    rows.push(lines[i]);
-                }
-            }
-            res.send(rows);
-        } else {
-            res.status(403).send('Forbidden');
-        }
-    }).catch((err: any) => {
-        log.error(err);
-    });
-});
-
-app.get('/api/version', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    try {
-        log.info('Checking for updates...');
-        const file = fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8');
-        const json = JSON.parse(file);
-        const result = {
-            version: json.version,
-        }
-        res.status(200).send(result);
-    } catch (err: any) {
-        log.error(err);
-        res.status(500).send('Internal Server Error');
-    }
-});
-
-app.get('/api/files', (req: any, res: any) => {
-    authentication.checkAccess(req.cookies.email)
-    .then((results: any) => {
-        if (results === 1) {
-            const _files: string[] = [];
-            fs.readdir(path.join(__dirname, '../files'), (err: any, files: any) => {
-                if (err) {
-                    log.error(err);
-                    res.status(500).send('Internal Server Error');
-                } else {
-                    files.forEach((file: any) => {
-                        if (file === 'secure') return;
-                        const stats = fs.statSync(path.join(__dirname, '../files', file));
-                        const size = formatFileSize(stats.size) as string;
-                        _files.push({name: file, size: `${size}`} as any);
-                    });
-                }
-                res.send(_files);
-            });
-        } else {
-            res.status(403).send('Forbidden');
-        }
-    }).catch((err: any) => {
-        log.error(err);
-    });
-});
-
-function formatFileSize(bytes: number) {
-    if (bytes >= 1e9) { // If size is greater than or equal to 1 GB
-      return (bytes / 1e9).toFixed(2) + " GB"; // Convert to GB and round to 2 decimal places
-    } else if (bytes >= 1e6) { // If size is greater than or equal to 1 MB
-      return (bytes / 1e6).toFixed(2) + " MB"; // Convert to MB and round to 2 decimal places
-    } else {
-      return (bytes / 1e3).toFixed(2) + " KB"; // Convert to KB and round to 2 decimal places
-    }
-  }
-
-app.post('/api/upload', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
-    upload.single('fileToUpload')(req, res, (err: any) => {
-        if (err) {
-            log.error(err);
-        }
-    });
-    res.redirect('back');
-});
-
-
-app.get('/api/security-definitions', (req: any, res: any) => {
-    authentication.checkAccess(req.cookies.email)
-    .then((results: any) => {
-        if (results === 1) {
-            const file = fs.readFileSync(path.join(__dirname, '../config/security.cfg'), 'utf8');
-            const rows: string[] = [];
-            file.split('\n').forEach((line: any) => {
-                if (!line.startsWith('#') || line === '') {
-                    rows.push(line);
-                }
-            });
-            res.send(rows);
-        } else {
-            res.status(403).send('Forbidden');
-        }
-    }).catch((err: any) => {
-        log.error(err);
-    });
-});
-
-app.get('/api/redirect-rules', (req: any, res: any) => {
-    authentication.checkAccess(req.cookies.email)
-    .then((results: any) => {
-        if (results === 1) {
-            const file = fs.readFileSync(path.join(__dirname, '../config/redirects.cfg'), 'utf8');
-            const rows: string[] = [];
-            file.split('\n').forEach((line: any) => {
-                if (!line.startsWith('#') || line === '') {
-                    rows.push(line);
-                }
-            });
-            res.send(rows);
-        } else {
-            res.status(403).send('Forbidden');
-        }
-    }).catch((err: any) => {
-        log.error(err);
-    });
-});
-
-app.get('/api/blocked-ips', (req: any, res: any) => {
-    authentication.checkAccess(req.cookies.email)
-    .then((results: any) => {
-        const rows: string[] = [];
-        if (results === 1) {
-            query('SELECT * FROM blocked_ips')
-                .then((results: any) => {
-                    const start = results.length > 100 ? results.length - 100 : 0;
-                    for (let i = start; i < results.length; i++) {
-                        rows.push(results[i].ip);
-                    }
-                    res.send(rows);
-                }).catch((err: any) => {
-                    log.error(err);
-                    res.status(500).send('Internal Server Error');
-                });
-        } else {
-            res.status(403).send('Forbidden');
-        }
-    }).catch((err: any) => {
-        log.error(err);
-    });
-});
-
-app.delete('/api/remove-blocked-ip', (req: any, res: any) => {
-    authentication.checkAccess(req.cookies.email)
-    .then((results: any) => {
-        if (results === 1) {
-            query('DELETE FROM blocked_ips WHERE ip = ?', [req.body.ip])
-                .then((results: any) => {
-                    if (results.affectedRows === 1) {
-                        res.status(200).send('OK');
-                    } else {
-                        res.status(404).send('Not Found');
-                    }
-                }).catch((err: any) => {
-                    log.error(err);
-                    res.status(500).send('Internal Server Error');
-                });
-        } else {
-            res.status(403).send('Forbidden');
-        }
-    }).catch((err: any) => {
-        log.error(err);
-    });
-});
-
-app.delete('/api/remove-file', (req: any, res: any) => {
-    authentication.checkAccess(req.cookies.email)
-    .then((results: any) => {
-        if (results === 1) {
-            // Check if the file exists
-            if (fs.existsSync(path.join(__dirname, '../files', req.body.file))) {
-                // Remove it
-                fs.unlinkSync(path.join(__dirname, '../files', req.body.file));
-                if (fs.readdirSync(path.join(__dirname, '../files')).length === 0) {
-                    res.status(201).send('OK');
-                } else {
-                    res.status(200).send('OK');
-                }
-            } else {
-                res.status(404).send('Not Found');
-            }
-        } else {
-            res.status(403).send('Forbidden');
-        }
-    }).catch((err: any) => {
-        log.error(err);
-    });
-});
-
+// Remove User
 app.delete('/api/remove-user', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
@@ -807,6 +597,7 @@ app.delete('/api/remove-user', (req: any, res: any) => {
     });
 });
 
+// Create Account
 app.post('/api/create-account', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     const body = req.body;
@@ -848,6 +639,7 @@ app.post('/api/create-account', (req: any, res: any) => {
     });
 });
 
+// Reset Password
 app.post('/reset-password', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
@@ -860,6 +652,217 @@ app.post('/reset-password', (req: any, res: any) => {
     }).catch((err: any) => {
         log.error(err);
         res.redirect('/login');
+    });
+});
+
+// Get Server Info
+app.get('/api/serverinfo', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    const serverinfo = {
+        ip: req.socket.remoteAddress,
+        directory: path.basename(__dirname),
+        domain: req.headers.host,
+        protocol: req.headers['x-forwarded-proto'] || req.protocol
+    };
+    res.status(200).send(serverinfo);
+});
+
+// Get File Usage
+app.get('/api/fileusage', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    fs.statfs('/', (err: any, stats: any) => {
+        const data = {
+            total: stats.blocks * stats.bsize,
+            free: stats.bfree * stats.bsize,
+            used: (stats.blocks - stats.bfree) * stats.bsize,
+        };
+        res.status(200).send(data);
+    });
+});
+
+// Get Logs
+app.get('/api/logs', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const file = fs.readFileSync(path.join(__dirname, './logs/debug.log'), 'utf8');
+            const rows: string[] = [];
+            const lines = file.split('\n');
+            const start = lines.length > 50 ? lines.length - 50 : 0;
+            for (let i = start; i < lines.length; i++) {
+                if (!lines[i].startsWith('#') || lines[i] === '') {
+                    rows.push(lines[i]);
+                }
+            }
+            res.send(rows);
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+// Get Server Version
+app.get('/api/version', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    try {
+        log.info('Checking for updates...');
+        const file = fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8');
+        const json = JSON.parse(file);
+        const result = {
+            version: json.version,
+        }
+        res.status(200).send(result);
+    } catch (err: any) {
+        log.error(err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+// Get Files
+app.get('/api/files', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const _files: string[] = [];
+            fs.readdir(path.join(__dirname, '../files'), (err: any, files: any) => {
+                if (err) {
+                    log.error(err);
+                    res.status(500).send('Internal Server Error');
+                } else {
+                    files.forEach((file: any) => {
+                        if (file === 'secure') return;
+                        const stats = fs.statSync(path.join(__dirname, '../files', file));
+                        const size = formatFileSize(stats.size) as string;
+                        _files.push({name: file, size: `${size}`} as any);
+                    });
+                }
+                res.send(_files);
+            });
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+// Format file size
+function formatFileSize(bytes: number) {
+    if (bytes >= 1e9) { // If size is greater than or equal to 1 GB
+      return (bytes / 1e9).toFixed(2) + " GB"; // Convert to GB and round to 2 decimal places
+    } else if (bytes >= 1e6) { // If size is greater than or equal to 1 MB
+      return (bytes / 1e6).toFixed(2) + " MB"; // Convert to MB and round to 2 decimal places
+    } else {
+      return (bytes / 1e3).toFixed(2) + " KB"; // Convert to KB and round to 2 decimal places
+    }
+}
+
+// Upload File
+app.post('/api/upload', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
+    upload.single('fileToUpload')(req, res, (err: any) => {
+        if (err) {
+            log.error(err);
+        }
+    });
+    res.redirect('back');
+});
+
+// Get Security Definitions
+app.get('/api/security-definitions', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            const file = fs.readFileSync(path.join(__dirname, '../config/security.cfg'), 'utf8');
+            const rows: string[] = [];
+            file.split('\n').forEach((line: any) => {
+                if (!line.startsWith('#') || line === '') {
+                    rows.push(line);
+                }
+            });
+            res.send(rows);
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+// Get Blocked IPs
+app.get('/api/blocked-ips', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        const rows: string[] = [];
+        if (results === 1) {
+            query('SELECT * FROM blocked_ips')
+                .then((results: any) => {
+                    const start = results.length > 100 ? results.length - 100 : 0;
+                    for (let i = start; i < results.length; i++) {
+                        rows.push(results[i].ip);
+                    }
+                    res.send(rows);
+                }).catch((err: any) => {
+                    log.error(err);
+                    res.status(500).send('Internal Server Error');
+                });
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+// Remove Blocked IP
+app.delete('/api/remove-blocked-ip', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            query('DELETE FROM blocked_ips WHERE ip = ?', [req.body.ip])
+                .then((results: any) => {
+                    if (results.affectedRows === 1) {
+                        res.status(200).send('OK');
+                    } else {
+                        res.status(404).send('Not Found');
+                    }
+                }).catch((err: any) => {
+                    log.error(err);
+                    res.status(500).send('Internal Server Error');
+                });
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
+    });
+});
+
+// Remove File
+app.delete('/api/remove-file', (req: any, res: any) => {
+    authentication.checkAccess(req.cookies.email)
+    .then((results: any) => {
+        if (results === 1) {
+            // Check if the file exists
+            if (fs.existsSync(path.join(__dirname, '../files', req.body.file))) {
+                // Remove it
+                fs.unlinkSync(path.join(__dirname, '../files', req.body.file));
+                if (fs.readdirSync(path.join(__dirname, '../files')).length === 0) {
+                    res.status(201).send('OK');
+                } else {
+                    res.status(200).send('OK');
+                }
+            } else {
+                res.status(404).send('Not Found');
+            }
+        } else {
+            res.status(403).send('Forbidden');
+        }
+    }).catch((err: any) => {
+        log.error(err);
     });
 });
 
