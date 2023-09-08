@@ -491,46 +491,23 @@ app.post('/api/add-redirect', (req: any, res: any) => {
     });
 });
 
-app.post('/api/remove-redirect', (req: any, res: any) => {
+app.delete('/api/remove-redirect', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {
             const body = req.body;
             removeRedirect(body.url).then(() => {
                 log.info(`[Redirect Removed] - ${body.url}`);
+                res.status(200).send('OK');
             }).catch((err: any) => {
                 log.error(err);
+                res.status(500).send('Internal Server Error');
             });
-            res.redirect('back');
         } else {
-            res.redirect('/cpanel');
+            res.status(403).send('Forbidden');
         }
     }).catch((err: any) => {
         log.error(err);
-    });
-});
-
-// Enable maintenance mode
-app.post('/api/toggle-maintenance', (req: any, res: any) => {
-    authentication.checkAccess(req.cookies.email)
-    .then((results: any) => {
-        if (results === 1) {
-            getSetting('maintenance').then((value: any) => {
-                if (value === 'true') {
-                    updateSetting('maintenance', 'false');
-                    log.warn('[Maintenance Mode] - Disabled');
-                } else {
-                    updateSetting('maintenance', 'true');
-                    log.warn('[Maintenance Mode] - Enabled');
-                }
-            });
-            res.redirect('back');
-        } else {
-            res.redirect('/cpanel');
-        }
-    }).catch((err: any) => {
-        log.error(err);
-        res.status(500).send('Internal Server Error');
     });
 });
 
