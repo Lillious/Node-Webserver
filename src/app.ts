@@ -616,7 +616,6 @@ app.get('/api/logs', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {
-            log.info(path.join(__dirname, './logs/debug.log'));
             const file = fs.readFileSync(path.join(__dirname, './logs/debug.log'), 'utf8');
             const rows: string[] = [];
             const lines = file.split('\n');
