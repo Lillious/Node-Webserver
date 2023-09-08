@@ -1,6 +1,6 @@
 {
   "name": "node-webserver",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "description": "An easy-to-use webserver powered by Node and ExpressJS",
   "main": "dist/app.js",
   "scripts": {
@@ -46,6 +46,7 @@
     "vhost": "^3.0.2"
   },
   "devDependencies": {
+    "@types/connect-timeout": "^0.0.37",
     "@types/formidable": "^3.4.1",
     "@types/multer": "^1.4.7"
   }

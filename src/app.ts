@@ -62,7 +62,6 @@ const upload = multer({
 import filter from './plugins/security.js';
 import { redirect, removeRedirect, addRedirect } from './utils/redirect.js';
 import { getSetting, updateSetting } from './utils/settings.js';
-import { error } from 'node:console';
 
 // View Engine Setup
 app.use(logger('dev'));
@@ -112,9 +111,6 @@ if (cluster.isPrimary) {
         .then(() => {
             log.info(`Database Connection Successful`);
         })
-        .catch((err: any) => {
-            log.error(`Database Connection Failed\n${err}`);
-        });
     // Fork workers
     log.info(`Primary ${process.pid} is running on port ${port}`);
     for (let i = 0; i < os.availableParallelism(); i++) {
@@ -246,17 +242,17 @@ app.use('/login', express.static(path.join(__dirname, '../www/public/login/'), {
     maxAge: 2.88e+7
 }));
 
-app.use('/', express.static(path.join(__dirname, '../www/public/login'), {
+app.use('/', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 }));
 
 // Home Page
-app.use(vhost('*.*', express.static(path.join(__dirname, '../www/public/login'), {
+app.use(vhost('*.*', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 })));
 
 // Localhost
-app.use(vhost('localhost', express.static(path.join(__dirname, '../www/public/login'), {
+app.use(vhost('localhost', express.static(path.join(__dirname, '../www/public/'), {
     maxAge: 2.88e+7
 })));
 
@@ -495,46 +491,23 @@ app.post('/api/add-redirect', (req: any, res: any) => {
     });
 });
 
-app.post('/api/remove-redirect', (req: any, res: any) => {
+app.delete('/api/remove-redirect', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {
             const body = req.body;
             removeRedirect(body.url).then(() => {
                 log.info(`[Redirect Removed] - ${body.url}`);
+                res.status(200).send('OK');
             }).catch((err: any) => {
                 log.error(err);
+                res.status(500).send('Internal Server Error');
             });
-            res.redirect('back');
         } else {
-            res.redirect('/cpanel');
+            res.status(403).send('Forbidden');
         }
     }).catch((err: any) => {
         log.error(err);
-    });
-});
-
-// Enable maintenance mode
-app.post('/api/toggle-maintenance', (req: any, res: any) => {
-    authentication.checkAccess(req.cookies.email)
-    .then((results: any) => {
-        if (results === 1) {
-            getSetting('maintenance').then((value: any) => {
-                if (value === 'true') {
-                    updateSetting('maintenance', 'false');
-                    log.warn('[Maintenance Mode] - Disabled');
-                } else {
-                    updateSetting('maintenance', 'true');
-                    log.warn('[Maintenance Mode] - Enabled');
-                }
-            });
-            res.redirect('back');
-        } else {
-            res.redirect('/cpanel');
-        }
-    }).catch((err: any) => {
-        log.error(err);
-        res.status(500).send('Internal Server Error');
     });
 });
 
@@ -617,7 +590,6 @@ app.get('/api/logs', (req: any, res: any) => {
     authentication.checkAccess(req.cookies.email)
     .then((results: any) => {
         if (results === 1) {
-            log.info(path.join(__dirname, './logs/debug.log'));
             const file = fs.readFileSync(path.join(__dirname, './logs/debug.log'), 'utf8');
             const rows: string[] = [];
             const lines = file.split('\n');
@@ -634,6 +606,22 @@ app.get('/api/logs', (req: any, res: any) => {
     }).catch((err: any) => {
         log.error(err);
     });
+});
+
+app.get('/api/version', (req: any, res: any) => {
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    try {
+        log.info('Checking for updates...');
+        const file = fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8');
+        const json = JSON.parse(file);
+        const result = {
+            version: json.version,
+        }
+        res.status(200).send(result);
+    } catch (err: any) {
+        log.error(err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 app.get('/api/files', (req: any, res: any) => {
@@ -878,6 +866,10 @@ app.post('/reset-password', (req: any, res: any) => {
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    if (req.originalUrl === '/') {
+        res.redirect('/login');
+        return;
+    }
     res.status(404).sendFile(path.join(__dirname, '../www/public/errors/404.html'));
 });
 
