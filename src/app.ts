@@ -380,8 +380,6 @@ app.post('/2fa/resend', (req: any, res: any) => {
 // Authented Routes Middleware
 app.use(function(req: any, res: any, next: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    // Check if path exists
-    if (!fs.existsSync(path.join(__dirname, '../www/public', req.path))) return res.status(404).sendFile(path.join(__dirname, '../www/public/errors/404.html'));
     // Verify session and email cookies exist
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
     // Check if the email is valid
@@ -716,7 +714,6 @@ app.get('/api/logs', (req: any, res: any) => {
 app.get('/api/version', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     try {
-        log.info('Checking for updates...');
         const file = fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8');
         const json = JSON.parse(file);
         const result = {
@@ -878,6 +875,7 @@ app.delete('/api/remove-file', (req: any, res: any) => {
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    log.info(`${req.originalUrl}`);
     if (req.originalUrl === '/') {
         res.redirect('/login');
         return;
