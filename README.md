@@ -81,23 +81,6 @@ Add a new line of code to the section to set up routing for your new subdomain. 
 app.use(vhost('mynewsubdomain.*.*', express.static(path.join(__dirname, '/www/mynewsubdomain'))));
 ```
 
-## Adding additional domains
-Location: src/app.ts
-
-The following code defines an array of domains that can be hosted by the application. To add a new domain, the `domains` array must be updated with the new domain's name. Additionally, a folder with the same name as the domain must be created in the `www` directory, and an `index.html` file must be placed in the root directory of the new folder.
-
-```ts
-const domains: string['mydomain.com, example.com'] = [];
-```
-```
-├── www/
-│   ├── mydomain.com/
-│   │   └── index.html
-│   └── example.com/
-│       └── index.html
-```
-
-
 ## Function: query(sql: string, values?: any): Promise<any>
 
 This function executes a SQL query on a database and returns a Promise that resolves to the query result.
