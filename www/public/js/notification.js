@@ -1,6 +1,5 @@
-function Notification (type, message) {
-    const document = this.document;
-    const container = this.document.getElementById("container");
+export default function Notification (type, message) {
+    const container = document.getElementById("container") || document.getElementById("container-login") || document.getElementById("container-register");
     if (!container) return;
     const notification = document.createElement("div");
     notification.classList.add("notification");

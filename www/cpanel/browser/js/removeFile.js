@@ -9,18 +9,22 @@ function removeFile(file) {
         file: file
       })
     }).then(res => {
-      if (res.status === 200) {
-        const list = this.window.document.getElementById("info-panel")
-        if (list) {
-          const items = list.getElementsByClassName("list-item-content")
-          for (let i = 0; i < items.length; i++) {
-            const item = items[i]
-            const _file = item.getElementsByTagName("p")[0].innerHTML
-            if (file === _file) {
-              if (item.parentElement) {
-                item.parentElement.remove()
-                return
-              }
+      if (res.status !== 200) {
+        window.Notification("error", `Failed to remove file ${file}`)
+        return;
+      }
+
+      const list = this.window.document.getElementById("info-panel")
+      if (list) {
+        const items = list.getElementsByClassName("list-item-content")
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i]
+          const _file = item.getElementsByTagName("p")[0].innerHTML
+          if (file === _file) {
+            if (item.parentElement) {
+              item.parentElement.remove()
+              window.Notification("success", `File ${file} was removed`)
+              return
             }
           }
         }

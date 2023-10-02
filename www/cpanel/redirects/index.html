@@ -5,17 +5,19 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <link rel="icon" href="../../images/node.ico" type="image/x-icon">
         <title>cPanel</title>
+        <script type="module">
+            import Notification from "../../../js/notification.js";
+            window.Notification = Notification;
+        </script>
         <link rel="preload" href="../../css/style.css" as="style">
         <link rel="stylesheet" href="../../css/style.css">
         <link rel="preload" href="./js/getRedirects.js" as="script">
         <link rel="preload" href="./js/removeRedirect.js" as="script">
         <link rel="preload" href="./js/addRedirect.js" as="script">
-        <link rel="preload" href="../../js/notification.js" as="script">
         <link rel="preload" href="../../js/logout.js" as="script">
         <script defer async src="./js/getRedirects.js"></script>
         <script defer async src="./js/removeRedirect.js"></script>
         <script defer async src="./js/addRedirect.js"></script>
-        <script defer async src="../../js/notification.js"></script>
         <script defer async src="../../js/logout.js"></script>
     </head>
     <body>

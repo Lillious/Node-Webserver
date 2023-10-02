@@ -254,37 +254,38 @@ app.post('/login', (req: any, res: any) => {
     res.clearCookie('email');
     const body = req.body;
     if (body.email && body.password) {
-        if (!validateEmail(body.email)) return res.redirect('/login');
+        if (!validateEmail(body.email)) return res.status(401).send('Unauthorized');
         res.cookie('email', body.email, {
             maxAge: 86400000,
             httpOnly: true
         });
         query('SELECT * FROM accounts WHERE email = ? AND password = ?', [body.email.toLowerCase(), hash(body.password)])
             .then((results: any) => {
-                if (results.length > 0) {
-                    // Check if the account needs a password reset
-                    if (results[0].passwordreset == '1') return res.sendFile(path.join(__dirname, '/login/passwordreset.html'));
-                    query('UPDATE accounts SET lastlogin = ? WHERE email = ?', [new Date(), body.email.toLowerCase()])
-                        .then(() => {
-                            createSession(req, res, body.email.toLowerCase());
-                        })
-                        .catch((err: any) => {
-                            log.error(err);
-                        });
-                } else {
-                    res.redirect('/login');
+                if (results.length === 0) return res.status(401).send('Unauthorized');
+                if (results[0].passwordreset == '1') {
+                    res.status(403).send('Password Reset Required');
+                    return;
                 }
+                query('UPDATE accounts SET lastlogin = ? WHERE email = ?', [new Date(), body.email.toLowerCase()])
+                    .then(() => {
+                        createSession(req, res, body.email.toLowerCase());
+                    })
+                    .catch((err: any) => {
+                        log.error(err);
+                    });
             }).catch((err: any) => {
                 log.error(err);
-                res.redirect('/login');
+                res.status(500).send('Internal Server Error');
+                return;
             });
     } else {
-        res.redirect(`${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`);
+        res.status(401).send('Unauthorized');
+        return;
     }
 });
 
 // Register
-app.post('/register', (req: any, res: any) => {
+app.post('/registration', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     getSetting('registration').then((value: any) => {
         if (value != 'true') return res.redirect('/login');
@@ -292,16 +293,25 @@ app.post('/register', (req: any, res: any) => {
     const body = req.body;
     if (body.email && body.password && body.password2) {
     // Check if the passwords match
-        if (body.password !== body.password2) return res.redirect('/register');
+        if (body.password !== body.password2) {
+            res.status(401).send('Unauthorized');
+            return;
+        }
+    } else {
+        res.status(401).send('Unauthorized');
+        return;
     }
+    
     // Check if the email is valid
-    if (!validateEmail(body.email)) return res.redirect('/register');
+    if (!validateEmail(body.email)) return res.status(401).send('Unauthorized');
     // Check if the email is already in use
     query('SELECT * FROM accounts WHERE email = ?', [body.email.toLowerCase()])
         .then((results: any) => {
-            if (results.length > 0) return res.redirect('/register');
+            if (results.length > 0) return res.status(401).send('Unauthorized');
         }).catch((err: any) => {
             log.error(err);
+            res.status(500).send('Internal Server Error');
+            return;
         });
 
     // Create the account and send the user to the 2fa page
@@ -314,7 +324,8 @@ app.post('/register', (req: any, res: any) => {
             createSession(req, res, body.email.toLowerCase());
         }).catch((err: any) => {
             log.error(err);
-            res.redirect('/register');
+            res.status(500).send('Internal Server Error');
+            return;
         });
 });
 
@@ -325,28 +336,29 @@ app.post('/2fa', (req: any, res: any) => {
     // Verify session and email cookies exist
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
     // Check if the email is valid
-    if (!validateEmail(req.cookies.email)) return res.redirect('/login');
+    if (!validateEmail(req.cookies.email)) return res.stat
     authentication.checkCode(req.cookies.email, body.code)
         .then((results: any) => {
-            if (!results) return res.redirect('/login');
+            if (!results) return res.status(401).send('Unauthorized');
             query('UPDATE sessions SET code = ? WHERE email = ?', ['0', req.cookies.email])
                 .then(() => {
-                    res.redirect('/cpanel');
+                    res.status(200).send('OK');
                 }).catch((err: any) => {
                     log.error(err);
                 });
         }).catch((err: any) => {
             log.error(err);
-            res.redirect('/login/2fa.html');
+            res.status(500).send('Internal Server Error');
         });
 });
 
 // Reset Password
 app.post('/api/reset-password', (req: any, res: any) => {
-    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');    
+    res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
+    console.log("Tried"); 
     const body = req.body;
-    if (!body.temppassword || !body.password1 || !body.password2) return res.redirect('back');
-    if (body.password1 !== body.password2) return res.redirect('back');
+    if (!body.temppassword || !body.password1 || !body.password2) return res.status(401).send('Unauthorized');
+    if (body.password1 !== body.password2) return res.status(401).send('Unauthorized');
     query('SELECT passwordreset FROM accounts WHERE email = ? AND password = ?', [req.cookies.email, hash(body.temppassword)])
         .then((results: any) => {
             if (results[0].passwordreset === '1') {
@@ -465,7 +477,10 @@ app.post('/api/add-redirect', (req: any, res: any) => {
     .then((results: any) => {
         if (results === 1) {
             const body = req.body;
-            if (!body.url || !body.redirect) return log.error(`[Redirect] - INVALID_REDIRECT`);
+            if (!body.url || !body.redirect) {
+                log.error(`[Redirect] - INVALID_REDIRECT`);
+                return res.status(500).send('Internal Server Error');
+            }
             if (!body.url.replace(/\/$/, '').startsWith(req.headers.host.replace(/\/$/, ''))) {
                 log.error(`[Redirect] - Redirect URI must start with ${req.headers.host}`);
                 return res.status(500).send('Internal Server Error');
@@ -664,7 +679,7 @@ app.post('/reset-password', (req: any, res: any) => {
     query('UPDATE accounts SET password = ?, passwordreset = ? WHERE email = ?', [hash(temp), '1', req.cookies.email])
     .then(() => {
         email.send(req.cookies.email, 'Password Reset', `Your temporary password is: ${temp}`);
-        res.sendFile(path.join(__dirname, 'login/passwordreset.html'));
+        res.sendFile(path.join(__dirname, '..', 'www/public/login/passwordreset.html'));
     }).catch((err: any) => {
         log.error(err);
         res.redirect('/login');

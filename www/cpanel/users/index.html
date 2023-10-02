@@ -5,6 +5,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <link rel="icon" href="../../images/node.ico" type="image/x-icon">
         <title>cPanel</title>
+        <script type="module">
+            import Notification from "../../../js/notification.js";
+            window.Notification = Notification;
+        </script>
         <link rel="preload" href="../../css/style.css" as="style">
         <link rel="stylesheet" href="../../css/style.css">
         <link rel="preload" href="./js/removeUser.js" as="script">

@@ -5,10 +5,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <link rel="icon" href="../../images/node.ico" type="image/x-icon">
         <title>cPanel</title>
-        <!-- Preload css -->
+        <script type="module">
+            import Notification from "../../../js/notification.js";
+            window.Notification = Notification;
+        </script>
         <link rel="preload" href="../../css/style.css" as="style">
         <link rel="stylesheet" href="../../css/style.css">
-        <!-- Preload js -->
         <link rel="preload" href="./js/removeBlockedIp.js" as="script">
         <link rel="preload" href="./js/getBlockedIps.js" as="script">
         <link rel="preload" href="../../js/logout.js" as="script">
