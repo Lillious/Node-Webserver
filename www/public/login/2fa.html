@@ -5,9 +5,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <link rel="icon" href="../images/node.ico" type="image/x-icon">
         <title>Login</title>
-        <!-- Preload css -->
-        <link rel="preload" href="../css/style.css" as="style" onload="this.rel='stylesheet'">
+        <script type="module">
+            import Notification from "../../../js/notification.js";
+            window.Notification = Notification;
+        </script>
+        <link rel="preload" href="../css/style.css" as="style">
         <link rel="stylesheet" href="../css/style.css">
+        <link rel="preload" href="./js/2fa.js" as="script">
+        <script defer async src="./js/2fa.js"></script>
     </head>
     <body>
         <nav>
@@ -17,19 +22,19 @@
         <div id="container-login">
             <div id="login-form">
                 <h1>VERIFICATION</h1>
-                <form action="/2fa" method="post">
+                <div>
                     <input type="text" name="code" id="code" placeholder="123456" required autocomplete="off" spellcheck="false" autofocus>
                     <br><br>
                     <center>
-                        <button type="submit">Submit</button>
+                        <button id="2fa-send" type="button">Submit</button>
                     </center>
-                </form>
+                </div>
                 <br>
-                <form action="/2fa/resend" method="post">
+                <div>
                     <center>
-                        <a class="link" type="submit" onclick="this.closest('form').submit();return false;">Resend Code</a>
+                        <a class="link" id="2fa-resend">Resend Code</a>
                     </center>
-                </form>
+                </div>
             </div>
         </div>
     </body>

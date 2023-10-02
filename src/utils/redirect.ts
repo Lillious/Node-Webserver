@@ -39,21 +39,41 @@ export function redirect (req: any, res: any, next: any): void {
 
 export function addRedirect (from: string, to: string): Promise<any> {
     return new Promise((resolve, reject) => {
+        if (from == "" || to == "") throw new Error('INVALID_REDIRECT');
+        if (from === to) throw new Error('SAME_REDIRECT');
+        to = to.replace(/\/$/, '');
+        from = from.replace(/\/$/, '');
+        
+        if (!from.includes('.')) {
+            if (!from.startsWith('localhost')) throw new Error('INVALID_REDIRECT');
+        }
+
+        if (!to.includes('.')) {
+            if (!to.startsWith('localhost')) throw new Error('INVALID_REDIRECT');
+        }
+
+        try {
+            new URL(`https://${from}`);
+            new URL(`https://${to}`);
+        } catch (err) {
+            throw new Error('PARSE_ERROR');
+        }
+
         if (!fs.readFileSync(redirects, 'utf8').endsWith('\n')) fs.appendFileSync(redirects, '\n');
         if (!from.endsWith('/')) from += '/';
         if (!to.endsWith('/')) to += '/';
+        let duplicate = false;
         const rl = readline.createInterface({ input: fs.createReadStream(redirects) });
         rl.on('line', (line: string) => {
             if (line.startsWith('#')) return;
             const [redirectFrom] = line.split(' -> ');
-            if (from === redirectFrom) reject('ALR_EXISTS');
+            if (from === redirectFrom) { duplicate = true; }
         }).on('close', () => {
+            if (duplicate) return reject('DUPLICATE_REDIRECT');
             fs.appendFileSync(redirects, `${from} -> ${to}\n`);
+            log.info(`[Redirect Added] - ${from} -> ${to}`);
             resolve(true);
-        }).on('error', (err: any) => {
-            log.error(err);
-            reject('Error reading redirects.cfg');
-        });
+        })
     });
 }
 
@@ -61,11 +81,11 @@ export function removeRedirect (from: string): Promise<any> {
     return new Promise((resolve, reject) => {
         if (!from.endsWith('/')) from += '/';
         fs.readFile(redirects, 'utf8', (err, data) => {
-            if (err) reject('Error reading redirects.cfg');
+            if (err) throw err;
             const lines = data.split('\n');
             const newLines = lines.filter((line: string) => !line.startsWith(from));
             fs.writeFile(redirects, newLines.join('\n'), (err) => {
-                if (err) reject('Error writing redirects.cfg');
+                if (err) throw err;
                 resolve(true);
             });
         });

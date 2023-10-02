@@ -7,7 +7,7 @@
       headers: {
         "Content-Type": "application/json"
       },
-      cache: "force-cache"
+      cache: "no-cache"
     })
       .then(res => {
         if (res.status === 200) {

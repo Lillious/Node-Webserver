@@ -10,7 +10,10 @@ function removeRedirect(url) {
         }),
         cache: "no-cache"
     }).then(res => {
-        if (res.status !== 200) return;
+        if (res.status !== 200) {
+          window.Notification("error", `Failed to remove redirect ${url}`)
+          return;
+        }
         const list = this.window.document.getElementById("info-panel")
         if (list) {
           const items = list.getElementsByClassName("list-item-content")
@@ -18,12 +21,15 @@ function removeRedirect(url) {
             const item = items[i]
             const _url = item.getElementsByTagName("p")[0].innerHTML.replace(/-&gt;/g, "->")
             if (url === _url) {
-                if (item.parentElement) {
-                  item.parentElement.remove()
-                  return
-                }
+              if (item.parentElement) {
+                item.parentElement.remove()
+                window.Notification("success", `Redirect ${url} was removed`)
+                return;
               }
+            }
           }
         }
+    }).catch(err => {
+        window.Notification("error", `Failed to remove redirect ${url}`)
     })
 }
