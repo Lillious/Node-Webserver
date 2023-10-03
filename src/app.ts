@@ -465,21 +465,30 @@ app.post('/api/add-redirect', (req: any, res: any) => {
     .then((results: any) => {
         if (results === 1) {
             const body = req.body;
+            if (!body.url || !body.redirect) return log.error(`[Redirect] - INVALID_REDIRECT`);
+            if (!body.url.replace(/\/$/, '').startsWith(req.headers.host.replace(/\/$/, ''))) {
+                log.error(`[Redirect] - Redirect URI must start with ${req.headers.host}`);
+                return res.status(500).send('Internal Server Error');
+            }
+
+            // Check "redirect" is the host domain
+            if (body.redirect.replace(/\/$/, '').startsWith(req.headers.host.replace(/\/$/, ''))) {
+                log.error(`[Redirect] - Redirect URI cannot be the host domain`);
+                return res.status(500).send('Internal Server Error');
+            }
+            
             addRedirect(body.url, body.redirect).then(() => {
-                log.info(`[Redirect Added] - ${body.url} -> ${body.redirect}`);
+                res.status(200).send('OK');
             }).catch((err: any) => {
                 log.error(err);
+                res.status(500).send('Internal Server Error');
             });
-            res.redirect('back');
         } else {
-            res.redirect('/cpanel');
+            res.status(403).send('Forbidden');
         }
     }).catch((err: any) => {
-        if (err === 'ALR_EXISTS') {
-            res.status(500).send('Redirect already exists');
-        } else {
-            res.status(500).send('Internal Server Error');
-        }
+        log.error(err);
+        res.status(500).send('Internal Server Error');
     });
 });
 

@@ -5,6 +5,7 @@
     --white : #cecece;
     --green : #1EB980;
     --red : #FF4B4B;
+    --yellow : #FFC700;
     --box-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
     --nav-height: 40px;
     --font-small: 14px;
@@ -26,7 +27,7 @@
 }
 input[type=text] {
     border: none;
-    text-indent: 5px;
+    text-indent: 0px;
 }
 input:not([type=checkbox], [type=button]) {
     outline: none;
@@ -36,7 +37,7 @@ input:not([type=checkbox], [type=button]) {
     width: 200px;
     color: #1EB980;
     background: transparent;
-    text-indent: 5px;
+    text-indent: 0px;
     transition: 0.2s;
     -webkit-user-select: none;
     user-select: none;
@@ -55,7 +56,7 @@ input[type=email]:hover:not(:focus), input[type=password]:hover:not(:focus), inp
 }
 ::placeholder {
     color: #a5a5a5;
-    text-indent: 5px;
+    text-indent: 0px;
 }
 button {
     background: transparent;
@@ -396,6 +397,46 @@ nav {
     margin-bottom: 5px;
 }
 
+#add-redirect-container {
+    position: absolute;
+    margin-left: 10vw;
+    margin-right: 10vw;
+}
+
+#add-redirect-container button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+#add-redirect-inputs {
+    display: inline;
+}
+
+.notification {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    background: var(--black);
+    color: var(--white);
+    padding: 8px 16px;
+    border-radius: 2px;
+    box-shadow: var(--box-shadow);
+    z-index: 1000;
+    border-right: 5px solid var(--light-grey);
+}
+
+.error {
+    border-right: 5px solid var(--red);
+}
+
+.success {
+    border-right: 5px solid var(--green);
+}
+
+.warning {
+    border-right: 5px solid var(--yellow);
+}
+
 /* Check if the screen is less than 980 pixels wide */
 @media only screen and (max-width: 980px) {
     #side-menu-right {
@@ -415,6 +456,9 @@ nav {
         max-width: unset;
         margin-top: unset;
    }
+    #add-redirect-inputs {
+        display: inline-block;
+    }
 }
 @media only screen and (max-width: 568px) {
     .category-content {
@@ -425,5 +469,8 @@ nav {
     #info-panel {
         margin-left: 15px;
         margin-right: 15px;
+   }
+   #add-redirect-container {
+        margin-left: 15px;
    }
 }
