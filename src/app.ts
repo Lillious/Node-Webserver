@@ -249,15 +249,6 @@ app.use(function(req: any, res: any, next: any) {
 /* Start Unsecure Routing */
 /* Routes that do not require authentication */
 
-// Name Servers
-app.use(vhost('ns1.*.*', express.static(path.join(__dirname, '../www/public/ns'), {
-    maxAge: 0
-})));
-
-app.use(vhost('ns2.*.*', express.static(path.join(__dirname, '../www/public/ns'), {
-    maxAge: 0
-})));
-
 // Files middleware for secure files
 app.use('/files/secure', (req: any, res: any) => {
     res.sendFile(path.join(__dirname, '../www/public/errors/403.html'));
@@ -275,11 +266,6 @@ app.use('/register', (req: any, res: any) => {
         }
     });
 });
-
-// Files subdomain route
-app.use(vhost('files.*.*', express.static(path.join(__dirname, '../files'), {
-    maxAge: 0
-})));
 
 // Files route
 app.use('/files', express.static(path.join(__dirname, '../files'), {
