@@ -951,7 +951,6 @@ app.delete('/api/remove-file', (req: any, res: any) => {
 // Redirect to root domain if route is not found
 app.use(function(req: any, res: any) {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
-    log.info(`${req.originalUrl}`);
     if (req.originalUrl === '/') {
         res.redirect('/login');
         return;
