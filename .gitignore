@@ -143,3 +143,6 @@ backups/
 files/**
 !files/secure/
 !files/secure/.gitkeep
+
+certs/**
+!certs/.gitkeep

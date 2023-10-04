@@ -22,6 +22,7 @@ NodeJS v20.6.0+
 - Mobile Optimized control panel
 - Registration system
 - Job scheduler system
+- SSL Certificate support
 
 ## Security Features
 - CORS, CSRF, XSS, SQL injection protection
@@ -69,6 +70,15 @@ EMAIL_ALERTS
 ```
 SESSION_KEY
 NODE_ENV (development | production)
+```
+
+## Enabling SSL
+Location src/app.ts
+```ts
+/* Certificate Setup */
+const _cert = path.join(__dirname, '../certs/cert.crt');
+const _ca = path.join(__dirname, '../certs/cert.ca-bundle');
+const _key = path.join(__dirname, '../certs/cert.key');
 ```
 
 ## Creating a subdomain (DNS required)
