@@ -8,6 +8,7 @@ import logger from 'morgan';
 import cookieParser from 'cookie-parser';
 import cookieSession from 'cookie-session';
 import http from 'node:http';
+import https from 'node:https';
 import cluster from 'node:cluster';
 import os from 'node:os';
 import { rateLimit } from 'express-rate-limit';
@@ -23,6 +24,26 @@ const port = process.env.PORT || 80;
 import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+/* Certificate Setup */
+const _cert = path.join(__dirname, '../certs/cert.crt');
+const _ca = path.join(__dirname, '../certs/cert.ca-bundle');
+const _key = path.join(__dirname, '../certs/cert.key');
+let _https = false;
+
+if (fs.existsSync(_cert) && fs.existsSync(_ca) && fs.existsSync(_key)) {
+    _https = true;
+}
+
+const cert = _https ? fs.readFileSync(_cert, 'utf8') : '';
+const ca = _https ? fs.readFileSync(_ca, 'utf8') : '';
+const key = _https ? fs.readFileSync(_key, 'utf8') : '';
+
+const credentials = {
+    cert: cert,
+    ca: ca,
+    key: key
+};
 
 /* File Uploads */
 import multer from 'multer';
@@ -100,9 +121,16 @@ app.use(limiter);
 // Server Setup
 app.set('port', port);
 const server = http.createServer(app);
+const httpsServer = https.createServer(credentials, app);
 
 // Cluster Setup
 if (cluster.isPrimary) {
+
+    if (!_https) {
+        log.error('SSL disabled - No certificates found or invalid certificates found in /certs');
+    } else {
+        log.info('SSL enabled');
+    }
     // Job System
     import('./jobs/jobs.js');
 
@@ -112,7 +140,6 @@ if (cluster.isPrimary) {
             log.info(`Database Connection Successful`);
         })
     // Fork workers
-    log.info(`Primary ${process.pid} is running on port ${port}`);
     for (let i = 0; i < os.availableParallelism(); i++) {
         cluster.fork();
     }
@@ -123,7 +150,7 @@ if (cluster.isPrimary) {
     });
 } else {
     server.listen(port, () => {
-        log.info(`Worker ${process.pid} started`);
+        log.info(`HTTP server started with worker id: ${process.pid}`);
     }).on('error', (error: any) => {
         if (error.syscall !== 'listen') {
             throw error;
@@ -145,6 +172,32 @@ if (cluster.isPrimary) {
                 throw error;
         }
     });
+    
+    if (_https) {
+        httpsServer.listen(443, () => {
+            log.info(`HTTPS server started with worker id: ${process.pid}`);
+        }).on('error', (error: any) => {
+            if (error.syscall !== 'listen') {
+                throw error;
+            }
+            const bind = typeof port === 'string' ?
+                'Pipe ' + port :
+                'Port ' + port;
+
+            switch (error.code) {
+                case 'EACCES':
+                    log.error(`${bind} requires elevated privileges`);
+                    process.exit(1);
+                    break;
+                case 'EADDRINUSE':
+                    log.error(`${bind} is already in use`);
+                    process.exit(1);
+                    break;
+                default:
+                    throw error;
+            }
+        });
+    }
 }
 
 // Email validation
@@ -153,6 +206,17 @@ function validateEmail(email: string) {
     const re2 = /\S+%40\S+\.\S+/;
     if (re.test(email) || re2.test(email)) return true;
     return false;
+}
+
+// Redirect all http requests to https if https is enabled
+if (_https) {
+    app.use((req: any, res: any, next: any) => {
+        if (!req.secure) {
+            res.redirect('https://' + req.headers.host + req.url);
+        } else {
+            next();
+        }
+    });
 }
 
 // Filter 
@@ -185,15 +249,6 @@ app.use(function(req: any, res: any, next: any) {
 /* Start Unsecure Routing */
 /* Routes that do not require authentication */
 
-// Name Servers
-app.use(vhost('ns1.*.*', express.static(path.join(__dirname, '../www/public/ns'), {
-    maxAge: 0
-})));
-
-app.use(vhost('ns2.*.*', express.static(path.join(__dirname, '../www/public/ns'), {
-    maxAge: 0
-})));
-
 // Files middleware for secure files
 app.use('/files/secure', (req: any, res: any) => {
     res.sendFile(path.join(__dirname, '../www/public/errors/403.html'));
@@ -211,11 +266,6 @@ app.use('/register', (req: any, res: any) => {
         }
     });
 });
-
-// Files subdomain route
-app.use(vhost('files.*.*', express.static(path.join(__dirname, '../files'), {
-    maxAge: 0
-})));
 
 // Files route
 app.use('/files', express.static(path.join(__dirname, '../files'), {
