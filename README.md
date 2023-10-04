@@ -9,7 +9,7 @@ Experience the power of ExpressJS with this secure and easy-to-use web server. D
 NodeJS v20.6.0+
 ```
 ## Features
-- Support for subdomains and multidomains
+- Support for subdomains
 - Cluster module for efficient performance
 - Flexible support for multiple file types
 - Code minification and Express file compression
@@ -22,7 +22,7 @@ NodeJS v20.6.0+
 - Mobile Optimized control panel
 - Registration system
 - Job scheduler system
-- SSL Certificate support
+- SSL certificate support
 
 ## Security Features
 - CORS, CSRF, XSS, SQL injection protection

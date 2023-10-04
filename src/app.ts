@@ -109,7 +109,7 @@ app.set('subdomain offset', 1);
 // Rate Limiting Setup
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 250,
+    max: 500,
     standardHeaders: true,
     legacyHeaders: false,
     message: {
@@ -843,12 +843,14 @@ function formatFileSize(bytes: number) {
 app.post('/api/upload', (req: any, res: any) => {
     res.setHeader('Cache-Control', 'public, max-age=2.88e+7');
     if (!req.cookies.session || !req.cookies.email) return res.redirect('/login');
-    upload.single('fileToUpload')(req, res, (err: any) => {
+    upload.single('file')(req, res, (err: any) => {
         if (err) {
             log.error(err);
+            return res.status(500).send('Internal Server Error');
+        } else {
+            return res.status(200).send('OK');
         }
     });
-    res.redirect('back');
 });
 
 // Get Security Definitions

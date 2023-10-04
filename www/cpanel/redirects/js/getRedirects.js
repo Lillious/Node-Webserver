@@ -15,7 +15,9 @@
           } else {
             for (let i = 0; i < data.length; i++) {
               if (data[i] !== "") {
-                panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>${data[i]}</p><div class="list-item-remove" onclick="removeRedirect('${data[i]}');">✕</div></div></div>`
+                // Split the redirect into the URL and the destination
+                const redirect = data[i].split(" -> ")
+                panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p class="clickable" onclick="window.open('https://${redirect[1]}')">${data[i]}</p><div class="list-item-remove" onclick="removeRedirect('${data[i]}');">✕</div></div></div>`
               }
             }
           }

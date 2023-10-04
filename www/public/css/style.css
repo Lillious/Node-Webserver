@@ -153,6 +153,9 @@ a:hover {
 .link:hover {
     color: #278dfb;
 }
+.clickable {
+    cursor: pointer;
+}
 #maintenance {
     position: fixed;
     text-align: center;
@@ -336,18 +339,22 @@ nav {
 }
 .list-item-content {
     font-size: var(--font-small);
+    width: 100%;
 }
-.list-item-content p {
+.list-item-content p:not(.info) {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-left: 50px;
+    margin-right: 50px;
 }
 .list-item-remove {
-    float: right;
+    float: left;
+    z-index: 1000;
     -webkit-user-select: none;
     user-select: none;
-    margin-top: -30px;
-    margin-right: 15px;
+    margin-top: -41.5px;
+    padding: 10px;
     cursor: pointer;
     font-size: var(--font-small);
     color: var(--white);
@@ -414,15 +421,15 @@ nav {
 
 .notification {
     position: fixed;
-    top: 25px;
+    bottom: 25px;
     right: 25px;
     background: var(--black);
     color: var(--white);
-    padding: 8px 16px;
-    border-radius: 2px;
+    padding: 4px 8px;
     box-shadow: var(--box-shadow);
     z-index: 1000;
     border-right: 5px solid var(--light-grey);
+    font-size: var(--font-small);
 }
 
 .error {
@@ -435,6 +442,21 @@ nav {
 
 .warning {
     border-right: 5px solid var(--yellow);
+}
+
+#progress-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background-color: transparent;
+    z-index: 1000;
+}
+
+#progress-bar #progress-bar-fill {
+    height: 100%;
+    background-color: var(--green);
+    width: 0%;
 }
 
 /* Check if the screen is less than 980 pixels wide */
@@ -458,6 +480,13 @@ nav {
    }
     #add-redirect-inputs {
         display: inline-block;
+    }
+
+    .notification {
+        padding: 2px 6px;
+        font-size: 12px;
+        right: 15px;
+        bottom: 15px;
     }
 }
 @media only screen and (max-width: 568px) {
