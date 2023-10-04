@@ -15,7 +15,7 @@
           } else {
             for (let i = 0; i < data.length; i++) {
               if (data[i] !== "") {
-                panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p class="fileName">${data[i].name}</p><p class="fileSize">${data[i].size}</p><div class="list-item-remove" onclick="removeFile('${data[i].name}');">✕</div></div></div>`
+                panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p class="fileName clickable" onclick="window.open('/files/${data[i].name}')">${data[i].name}</p><p class="fileSize">${data[i].size}</p><div class="list-item-remove" onclick="removeFile('${data[i].name}');">✕</div></div></div>`
               }
             }
           }
