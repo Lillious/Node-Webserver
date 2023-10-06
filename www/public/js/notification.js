@@ -17,7 +17,7 @@ export default function Notification(type, message) {
 		// Move all notifications up
 		const notifications = document.getElementsByClassName("notification");
 		for (let i = 0; i < notifications.length; i++) {
-			notifications[i].style.marginBottom = `${80 * i}px`;
+			notifications[i].style.marginBottom = `${80 * (i - 1)}px`;
 		}
 		notification.remove();
 	}, 5000);

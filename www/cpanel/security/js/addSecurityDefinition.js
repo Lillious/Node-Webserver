@@ -15,7 +15,7 @@ function addSecurityRule() {
 			window.Notification("error", `Failed to add security definition ${rule}`);
 			return;
 		}
-		panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>${rule}</p><div class="list-item-remove" onclick="removeSecurityDefinition();">✕</div></div></div>`
+		panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>${rule}</p><div class="list-item-remove" onclick="removeSecurityDefinition('${rule}');">✕</div></div></div>`
 		document.getElementById("rule").value = "";
 		window.Notification("success", `Security definition ${rule} added`);
 	}).catch(err => {
