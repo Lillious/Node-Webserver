@@ -404,18 +404,18 @@ nav {
     margin-bottom: 5px;
 }
 
-#add-redirect-container {
+#add-redirect-container, #add-rule-container {
     position: absolute;
     margin-left: 10vw;
     margin-right: 10vw;
 }
 
-#add-redirect-container button {
+#add-redirect-container button, #add-rule-container button {
     margin-right: 10px;
     margin-bottom: 10px;
 }
 
-#add-redirect-inputs {
+#add-redirect-inputs, #add-rule-input {
     display: inline;
 }
 
@@ -531,7 +531,8 @@ nav {
         max-width: unset;
         margin-top: unset;
    }
-    #add-redirect-inputs {
+
+    #add-redirect-inputs, #add-rule-input {
         display: inline-block;
     }
 
