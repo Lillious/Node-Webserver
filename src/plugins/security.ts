@@ -59,7 +59,7 @@ export default function filter(req: any, res: any, next: any, ip: any): void {
                     res.clearCookie('email');
                     res.clearCookie('session');
                     res.status(403);
-                    res.sendFile(path.join(__dirname, '..', 'errors/403.html'));
+                    res.sendFile(path.join(__dirname, '../www/public/errors/403.html'));
                     return;
                 } else {
                     checkAccess(req, res, next, ip);
@@ -77,7 +77,7 @@ function checkAccess (req: any, res: any, next: any, ip: any) {
         if (NullRoutingService.isEnabled()) return;
         if (b_ips.includes(ip)) {
             res.status(403);
-            res.sendFile(path.join(__dirname, '..', 'errors/403.html'));
+            res.sendFile(path.join(__dirname, '../www/public/errors/403.html'));
             return;
         }
         checkSecurityRule(req.url).then(() => {
