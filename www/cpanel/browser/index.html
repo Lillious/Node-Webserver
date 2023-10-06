@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="icon" href="../../images/node.ico" type="image/x-icon">
         <title>File Browser</title>
         <script type="module">
@@ -31,7 +31,8 @@
         </nav>
         <div id="container">
             <div>
-                <input id="upload-file-input" type="file" name="fileToUpload" style="display: none;">
+                <label for="upload-file-input" id="upload-file-label">Upload File</label>
+                <input id="upload-file-input" type="file" name="fileToUpload">
             </div>
 
             <div id="info-panel">
