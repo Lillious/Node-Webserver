@@ -336,7 +336,12 @@ app.post("/login", (req: any, res: any) => {
   res.clearCookie("email");
   const body = req.body;
   if (body.email && body.password) {
-    if (!validateEmail(body.email)) return res.status(401).send("Unauthorized");
+    if (!validateEmail(body.email)) {
+      res.clearCookie("session");
+      res.clearCookie("email");
+      res.status(401).send("Unauthorized");
+      return;
+    }
     res.cookie("email", body.email, {
       maxAge: 86400000,
       httpOnly: true,
@@ -346,7 +351,12 @@ app.post("/login", (req: any, res: any) => {
       hash(body.password),
     ])
       .then((results: any) => {
-        if (results.length === 0) return res.status(401).send("Unauthorized");
+        if (results.length === 0) {
+          res.clearCookie("session");
+          res.clearCookie("email");
+          res.status(401).send("Unauthorized");
+          return;
+        }
         if (results[0].passwordreset == "1") {
           res.status(403).send("Password Reset Required");
           return;
@@ -364,10 +374,14 @@ app.post("/login", (req: any, res: any) => {
       })
       .catch((err: any) => {
         log.error(err);
+        res.clearCookie("session");
+        res.clearCookie("email");
         res.status(500).send("Internal Server Error");
         return;
       });
   } else {
+    res.clearCookie("session");
+    res.clearCookie("email");
     res.status(401).send("Unauthorized");
     return;
   }

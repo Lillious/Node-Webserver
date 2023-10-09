@@ -1,5 +1,6 @@
 (function() {
 	const panel = this.window.document.getElementById("info-panel")
+	panel.innerHTML += `<p class="loading"></p>`
 	if (panel) {
 		fetch("/api/redirect-rule", {
 			method: "GET",
@@ -25,6 +26,9 @@
 			} else {
 				panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>Failed to get redirects</p></div></div>`
 			}
+		}).finally(() => {
+			const loading = panel.getElementsByClassName("loading");
+			loading[0].remove();
 		})
 	}
 })()

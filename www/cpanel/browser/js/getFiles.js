@@ -8,6 +8,7 @@
 		label.style.display = "none";
 	}
 	const panel = this.window.document.getElementById("info-panel")
+	panel.innerHTML += `<p class="loading"></p>`
 	if (panel) {
 		fetch("/api/file", {
 			method: "GET",
@@ -31,6 +32,9 @@
 			} else {
 				panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p class="info">Failed to get files</p></div></div>`
 			}
+		}).finally(() => {
+			const loading = panel.getElementsByClassName("loading");
+			loading[0].remove();
 		})
 	}
 })()

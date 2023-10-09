@@ -13,17 +13,21 @@
 			.then(res => {
 				if (res.status === 200) {
 					res.json().then(data => {
-						if (ip) ip.innerHTML = data.ip
-						if (directory) directory.innerHTML = `${data.directory}/`
-						if (domain) domain.innerHTML = `${data.protocol}://${data.domain}/`
+						if (ip) ip.innerHTML = data.ip || "Failed to load"
+						if (directory) directory.innerHTML = `${data.directory}/` || "Failed to load"
+						if (domain) domain.innerHTML = `${data.protocol}://${data.domain}/` || "Failed to load"
 					})
 				}
 			})
 			.catch(err => {
-				if (ip) ip.innerHTML = "Error"
-				if (directory) directory.innerHTML = "Error"
-				if (domain) domain.innerHTML = "Error"
+				if (ip) ip.innerHTML = "Failed to load"
+				if (directory) directory.innerHTML = "Failed to load"
+				if (domain) domain.innerHTML = "Failed to load"
 				console.error(err)
+			}).finally(() => {
+				ip.closest(".loading").classList.remove("loading")
+				directory.closest(".loading").classList.remove("loading")
+				domain.closest(".loading").classList.remove("loading")
 			})
 	}
 
@@ -53,12 +57,15 @@
 						} else if (percentage >= 90) {
 							if (bar) bar.style.backgroundColor = "#e74c3c"
 						}
+						document.getElementsByClassName("progress-bar")[0].style.opacity = "1"
 					})
 				}
 			})
 			.catch(err => {
-				if (fileSize) fileSize.innerHTML = "Error"
+				if (fileSize) fileSize.innerHTML = "Failed to load"
 				console.error(err)
+			}).finally(() => {
+				fileSize.closest(".loading").classList.remove("loading");
 			})
 	}
 
@@ -76,10 +83,14 @@
 					res.json().then(data => {
 						display_name.innerHTML = data.email
 					})
+				} else {
+					display_name.innerHTML = "Failed to load"
 				}
 			})
 			.catch(err => {
 				console.error(err)
+			}).finally(() => {
+				display_name.closest(".loading").classList.remove("loading");
 			})
 	}
 })()
