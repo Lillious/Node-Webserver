@@ -7,13 +7,13 @@ const pool = mysql.createPool({
   user: process.env.DATABASE_USER,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
+  waitForConnections: true,
 });
 
-export default function query(sql: string, values?: any): any {
+export default function query(sql: string, values?: any): Promise<any> {
   return new Promise((resolve, reject) => {
     pool.getConnection((err: any, connection: any) => {
       if (err) {
-        err = new Error("Error connecting to database");
         return reject(err);
       }
       connection.query(mysql.format(sql, values), (err: any, rows: any) => {
