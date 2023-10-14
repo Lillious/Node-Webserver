@@ -24,6 +24,7 @@ const port = process.env.PORT || 80;
 import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+import { service } from "./utils/ipservice.js";
 import { addSecurityRule, removeSecurityRule } from "./utils/security.js";
 
 /* Certificate Setup */
@@ -129,6 +130,14 @@ const httpsServer = https.createServer(credentials, app);
 
 // Cluster Setup
 if (cluster.isPrimary) {
+
+  // Test Database Connection
+  query("SELECT 1 + 1 AS solution").then(() => {
+    log.info(`Database Connection Successful`);
+  }).catch((err: any) => {
+    log.error(`Database Connection Failed With ${err}`);
+  });
+
   if (!_https) {
     log.error(
       "SSL disabled - No certificates found or invalid certificates found in /certs"
@@ -139,23 +148,21 @@ if (cluster.isPrimary) {
   // Job System
   import("./jobs/jobs.js");
 
-  // Test Database Connection
-  query("SELECT 1 + 1 AS solution").then(() => {
-    log.info(`Database Connection Successful`);
-  });
   // Fork workers
   for (let i = 0; i < os.availableParallelism(); i++) {
     cluster.fork();
   }
   // If a worker dies, create a new one to replace it
   cluster.on("exit", (worker: any) => {
-    log.error(`worker ${worker.process.pid} died`);
+    log.error(`worker ${worker.process.pid} died` + "\n" + "Restarting...");
     cluster.fork();
   });
 } else {
   server
     .listen(port, () => {
-      log.info(`HTTP server started with worker id: ${process.pid}`);
+      if (cluster?.worker?.id === 1) {
+        log.info(`HTTP Server listening on port ${port}`);
+      }
     })
     .on("error", (error: any) => {
       if (error.syscall !== "listen") {
@@ -180,7 +187,9 @@ if (cluster.isPrimary) {
   if (_https) {
     httpsServer
       .listen(443, () => {
-        log.info(`HTTPS server started with worker id: ${process.pid}`);
+        if (cluster?.worker?.id === 1) {
+          log.info(`HTTPS Server listening on port 443`);
+        }
       })
       .on("error", (error: any) => {
         if (error.syscall !== "listen") {
@@ -1150,6 +1159,8 @@ app.delete("/api/blocked-ip", (req: any, res: any) => {
         query("DELETE FROM blocked_ips WHERE ip = ?", [req.body.ip])
           .then((results: any) => {
             if (results.affectedRows === 1) {
+              service.blacklistRemove(req.body.ip);
+              log.info(`[BLOCKED IP REMOVED] - ${req.body.ip}`);
               res.status(200).send("OK");
             } else {
               res.status(404).send("Not Found");

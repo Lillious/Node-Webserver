@@ -35,6 +35,10 @@ query("SELECT * FROM blocked_ips").then((result: any) => {
   result.forEach((element: any) => {
     service.blacklistAdd(element.ip);
   });
+}).catch((err: any) => {
+  if (err) {
+    // Do nothing, we don't want to spam the console with errors
+  }
 });
 
 // Get all allowed IPs from the database and store them in memory for faster access
@@ -45,7 +49,7 @@ query("SELECT * FROM allowed_ips")
     });
   })
   .catch((err: any) => {
-    log.error(err);
+    // Do nothing, we don't want to spam the console with errors
   });
 
 export default function filter(req: any, res: any, next: any, ip: any): void {
@@ -60,7 +64,7 @@ export default function filter(req: any, res: any, next: any, ip: any): void {
           res.clearCookie("email");
           res.clearCookie("session");
           res.status(403);
-          res.sendFile(path.join(__dirname, "../www/public/errors/403.html"));
+          res.sendFile(path.join(__dirname, "../../www/public/errors/403.html"));
           return;
         } else {
           checkAccess(req, res, next, ip);
@@ -79,7 +83,7 @@ function checkAccess(req: any, res: any, next: any, ip: any) {
   if (NullRoutingService.isEnabled()) return;
   if (b_ips.includes(ip)) {
     res.status(403);
-    res.sendFile(path.join(__dirname, "../www/public/errors/403.html"));
+    res.sendFile(path.join(__dirname, "../../www/public/errors/403.html"));
     return;
   }
   checkSecurityRule(req.url)
@@ -93,7 +97,7 @@ function checkAccess(req: any, res: any, next: any, ip: any) {
           log.error(err);
         });
       res.status(418);
-      res.sendFile(path.join(__dirname, "..", "errors/418.html"));
+      res.sendFile(path.join(__dirname, "../../www/public/errors/418.html"));
       return;
     })
     .catch((err: any) => {

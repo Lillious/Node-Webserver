@@ -19,6 +19,13 @@ class IpService {
     getBlacklistedIPs(): string[] {
       return this.blocked_ips;
     }
+
+    blacklistRemove(ip: string): void {
+      const index = this.blocked_ips.indexOf(ip);
+      if (index > -1) {
+        this.blocked_ips.splice(index, 1);
+      }
+    }
   }
   
   export const service: IpService = new IpService();

@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
 import dotenv from "dotenv";
 dotenv.config();
 import * as log from "../utils/logging.js";
@@ -7,6 +5,7 @@ import query from "../utils/database.js";
 import * as email from "../utils/mailer.js";
 import fs from "fs";
 import tar from "tar";
+import cluster from "cluster";
 import path from "path";
 import crypto from "crypto";
 import { fileURLToPath } from "node:url";
@@ -20,10 +19,21 @@ const job = {
   clearInactiveSessions: {
     name: "Clear Inactive Sessions",
     enabled: true,
-    interval: 5000, // 1 hour
+    interval: 3.6e+6, // 1 hour
+    startImediately: true, // Run on startup
     start() {
-      query("DELETE FROM sessions WHERE created + interval 8 hour < now()");
+      query("DELETE FROM sessions WHERE created + interval 8 hour < now()").catch(
+        (err) => {
+          if (err) {
+            if (cluster.isPrimary) log.error(`[Job System] - ${this.name} - Failed to execute job: ${err}`);
+          }
+        }
+      );
     },
+    initialize() {
+      log.info(`[Job System] - ${this.name} - Initialized`);
+      this.start();
+    }
   },
   // Backup the source code
   backup: {
@@ -31,6 +41,7 @@ const job = {
     enabled: true,
     interval: 3.6e6, // 1 hour
     maxBackups: 5, // Keep the last 5 backups
+    startImediately: true, // Run on startup
     start() {
       const backupDir = path.join(__dirname, "..", "..", "backups");
       const backupFile = path.join(backupDir, "temp.bak");
@@ -55,16 +66,15 @@ const job = {
           let hour = date.getHours();
           let minute = date.getMinutes();
           let second = date.getSeconds();
-          if (month.length == 1) month = `0${month}`;
-          if (day.length == 1) day = `0${day}`;
-          if (hour.length == 1) hour = `0${hour}`;
-          if (minute.length == 1) minute = `0${minute}`;
-          if (second.length == 1) second = `0${second}`;
+          if (month.toString().length == 1) month = `0${month}` as any;
+          if (day.toString().length == 1) day = `0${day}` as any;
+          if (hour.toString().length == 1) hour = `0${hour}` as any;
+          if (minute.toString().length == 1) minute = `0${minute}` as any;
+          if (second.toString().length == 1) second = `0${second}` as any;
           const backupName = `${year}-${month}-${day}_${hour}-${minute}-${second}.bak`;
           const backupPath = path.join(backupDir, backupName);
           fs.rename(backupFile, backupPath, (err: any) => {
             if (err) throw err;
-            log.info("Backup completed");
           });
           // Delete last backup if there are more than 5
           fs.readdir(backupDir, (err: any, files: any) => {
@@ -82,9 +92,12 @@ const job = {
           });
         })
         .catch((err: any) => {
-          log.error(err);
+          if (cluster.isPrimary) log.error(`[Job System] - ${this.name} - Failed to execute job: ${err}`);
         });
     },
+    initialize() {
+      log.info(`[Job System] - ${this.name} - Initialized`);
+    }
   },
   // Watch dog service. Scans for altered files and notifies EMAIL_ALERTS of any changes.
   watchDog: {
@@ -107,7 +120,7 @@ const job = {
       });
       if (files.length > 0) {
         email.send(
-          process.env.EMAIL_ALERTS,
+          process.env.EMAIL_ALERTS as string,
           "Watch Dog Alert",
           `The following files have been altered since the last scan: ${files.join(
             ", "
@@ -117,6 +130,7 @@ const job = {
       this.initialize();
     },
     initialize() {
+      log.info(`[Job System] - ${this.name} - Initialized`);
       tempStorage.length = 0;
       files.length = 0;
       getFiles(path.join(__dirname, "..", "..", "dist"))
@@ -137,15 +151,14 @@ const job = {
         });
     },
   },
-};
+} as any;
 
 Object.keys(job).forEach((key: any) => {
   if (job[key].enabled) {
-    log.info(`Scheduling job: ${job[key].name}`);
     setInterval(() => {
       try {
         job[key].start();
-      } catch (err) {
+      } catch (err : any) {
         log.error(err);
       }
     }, job[key].interval);
@@ -154,7 +167,7 @@ Object.keys(job).forEach((key: any) => {
     if (job[key].startImediately) {
       try {
         job[key].initialize();
-      } catch (err) {
+      } catch (err : any) {
         log.error(err);
       }
     }

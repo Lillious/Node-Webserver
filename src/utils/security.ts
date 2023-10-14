@@ -20,7 +20,7 @@ export function checkSecurityRule(url: string): Promise<any> {
     });
     rl.on("line", (rule: string) => {
       if (rule.startsWith("#")) return;
-      if (url === rule) resolve(true);
+      if (url.includes(rule)) resolve(true);
     })
       .on("close", () => {
         reject("NOT_FOUND");
