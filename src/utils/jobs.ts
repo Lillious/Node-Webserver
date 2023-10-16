@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config();
-import * as log from "../utils/logging.js";
-import query from "../utils/database.js";
-import * as email from "../utils/mailer.js";
+import * as log from "./logging.js";
+import query from "./database.js";
+import * as email from "./mailer.js";
 import fs from "fs";
 import tar from "tar";
 import cluster from "cluster";
