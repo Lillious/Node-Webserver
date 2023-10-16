@@ -146,7 +146,7 @@ if (cluster.isPrimary) {
     log.info("SSL enabled");
   }
   // Job System
-  import("./jobs/jobs.js");
+  import("./utils/jobs.js");
 
   // Fork workers
   for (let i = 0; i < os.availableParallelism(); i++) {
