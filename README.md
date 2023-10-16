@@ -160,8 +160,16 @@ myFirstJob: {
     name: string,
     enabled: boolean,
     interval: number.
+    startImediately: boolean,
+    initialized: boolean,
     start() {
-        // Code to execute
+        // Code to execute when the job is started
+    },
+    initialize() {
+        // Code to execute when the job is initialized when startImediately is set to true
+    },
+    stop() {
+        // Call this function to stop the job
     }
 }
 ```
