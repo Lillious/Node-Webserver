@@ -155,13 +155,20 @@ const job = {
           )}`
         );
       }
-      this.initialize();
+      this.checkFiles();
     },
     initialize() {
       if (!this.initialized) {
         this.initialized = true; 
         log.info(`[Job System] - ${this.name} - Initialized`);
       }
+      this.checkFiles();
+    },
+    stop() {
+      this.enabled = false;
+      log.info(`[Job System] - ${this.name} - Stopped`);
+    },
+    checkFiles () {
       tempStorage.length = 0;
       files.length = 0;
       getFiles(path.join(__dirname, "..", "..", "dist"))
@@ -181,10 +188,6 @@ const job = {
           if (cluster.isPrimary) log.error(`[Job System] - ${this.name} - Failed to execute job: ${err}`);
           this.stop();
         });
-    },
-    stop() {
-      this.enabled = false;
-      log.info(`[Job System] - ${this.name} - Stopped`);
     }
   },
 } as any;
