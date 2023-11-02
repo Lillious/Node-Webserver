@@ -365,6 +365,22 @@ nav {
     color: var(--red);
     transition: 0.2s ease-in-out;
 }
+
+.progress-bar {
+    position: absolute;
+    right: 10px;
+    left: 10px;
+    height: 5px;
+    background-color: var(--black);
+    opacity: 0;
+}
+
+.progress-bar .progress-bar-fill { 
+    height: 100%;
+    background-color: var(--green);
+    width: 0%;
+}
+
 #progress-bar {
     position: absolute;
     right: 0;
@@ -374,6 +390,7 @@ nav {
 }
 
 #progress-bar #progress-bar-fill {
+    transition: 1s;
     height: 100%;
     background-color: var(--green);
     width: 0%;

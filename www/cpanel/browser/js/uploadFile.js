@@ -21,14 +21,31 @@ function UploadFile(form) {
 			progress.style.width = `${percent}%`;
 		}
 	}
-	xhr.onload = () => {
+	xhr.onloadend = () => {
 		const progress = document.getElementById("progress-bar-fill");
-		progress.style.width = "0%";
+		progress.addEventListener("transitionend", () => {
+			progress.style.width = "0%";
+			upload.value = "";
+		})
+
+		
+		const fileName = upload.files[0].name;
 		if (xhr.status !== 200) {
-			window.Notification("error", `Failed to upload file ${upload.files[0].name}`);
+			progress.addEventListener("transitionend", () => {
+				if (this.animated) return;
+				this.animated = true;
+				window.Notification("error", `Failed to upload file ${fileName}`);
+			})
 			return;
 		} else {
-			window.Notification("success", `Uploaded file ${upload.files[0].name}`);
+			progress.addEventListener("transitionend", () => {
+				if (this.animated) return;
+				this.animated = true;
+				window.Notification("success", `Uploaded file ${fileName}`);
+			})
+		}
+
+		setTimeout(() => {
 			const panel = document.getElementById("info-panel");
 			const items = document.getElementsByClassName("list-item");
 			var itemsCopy = [...items];
@@ -68,7 +85,18 @@ function UploadFile(form) {
 					panel.innerHTML += `<div class="list-item"><div class="list-item-title"></div><div class="list-item-content"><p>Failed to get files</p></div></div>`
 				}
 			})
-		}
+		}, 2000);
 	}
+
+xhr.upload.onerror = () => {
+	const progress = document.getElementById("progress-bar-fill");
+	// Set background color to red
+	progress.style.backgroundColor = "#FF4B4B";
+	progress.addEventListener("transitionend", () => {
+		progress.style.width = "0%";
+		progress.style.backgroundColor = "#1EB980";
+	})
+}
+
 	xhr.send(form);
 }
