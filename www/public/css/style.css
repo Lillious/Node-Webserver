@@ -365,15 +365,15 @@ nav {
     color: var(--red);
     transition: 0.2s ease-in-out;
 }
-.progress-bar {
+#progress-bar {
     position: absolute;
-    right: 10px;
-    left: 10px;
-    height: 5px;
+    right: 0;
+    left: 0;
+    height: 2px;
     background-color: var(--black);
-    opacity: 0;
 }
-.progress-bar .progress-bar-fill {
+
+#progress-bar #progress-bar-fill {
     height: 100%;
     background-color: var(--green);
     width: 0%;
@@ -402,8 +402,8 @@ nav {
 
 .fileSize {
     font-size: 10px;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin-top: 12px;
+    margin-bottom: 2px;
 }
 
 #add-redirect-container, #add-rule-container {

@@ -22,6 +22,8 @@ function UploadFile(form) {
 		}
 	}
 	xhr.onload = () => {
+		const progress = document.getElementById("progress-bar-fill");
+		progress.style.width = "0%";
 		if (xhr.status !== 200) {
 			window.Notification("error", `Failed to upload file ${upload.files[0].name}`);
 			return;
@@ -67,8 +69,6 @@ function UploadFile(form) {
 				}
 			})
 		}
-		const progress = document.getElementById("progress-bar-fill");
-		progress.style.width = "0%";
 	}
 	xhr.send(form);
 }
