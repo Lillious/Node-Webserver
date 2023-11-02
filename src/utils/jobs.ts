@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config();
-import * as log from "../utils/logging.js";
-import query from "../utils/database.js";
-import * as email from "../utils/mailer.js";
+import * as log from "./logging.js";
+import query from "./database.js";
+import * as email from "./mailer.js";
 import fs from "fs";
 import tar from "tar";
 import cluster from "cluster";
@@ -21,18 +21,27 @@ const job = {
     enabled: true,
     interval: 3.6e+6, // 1 hour
     startImediately: true, // Run on startup
+    initialized: false,
     start() {
       query("DELETE FROM sessions WHERE created + interval 8 hour < now()").catch(
         (err) => {
           if (err) {
             if (cluster.isPrimary) log.error(`[Job System] - ${this.name} - Failed to execute job: ${err}`);
+            this.stop();
           }
         }
       );
     },
     initialize() {
-      log.info(`[Job System] - ${this.name} - Initialized`);
+      if (!this.initialized) {
+        this.initialized = true; 
+        log.info(`[Job System] - ${this.name} - Initialized`);
+      }
       this.start();
+    },
+    stop() {
+      this.enabled = false;
+      log.info(`[Job System] - ${this.name} - Stopped`);
     }
   },
   // Backup the source code
@@ -42,6 +51,7 @@ const job = {
     interval: 3.6e6, // 1 hour
     maxBackups: 5, // Keep the last 5 backups
     startImediately: true, // Run on startup
+    initialized: false,
     start() {
       const backupDir = path.join(__dirname, "..", "..", "backups");
       const backupFile = path.join(backupDir, "temp.bak");
@@ -74,18 +84,27 @@ const job = {
           const backupName = `${year}-${month}-${day}_${hour}-${minute}-${second}.bak`;
           const backupPath = path.join(backupDir, backupName);
           fs.rename(backupFile, backupPath, (err: any) => {
-            if (err) throw err;
+            if (err) {
+              if (cluster.isPrimary) log.error(`[Job System] - ${this.name} - Failed to rename backup: ${err}`);
+              this.stop();
+            }
           });
           // Delete last backup if there are more than 5
           fs.readdir(backupDir, (err: any, files: any) => {
-            if (err) throw err;
+            if (err) {
+              if (cluster.isPrimary) log.error(`[Job System] - ${this.name} - Failed to read backup directory: ${err}`);
+              this.stop();
+            }
             const backups = files.filter((file: any) => file.endsWith(".bak"));
             if (backups.length > this.maxBackups) {
               const backupsToDelete = backups.slice(0, backups.length - 5);
               backupsToDelete.forEach((backupToDelete: any) => {
                 const backupToDeletePath = path.join(backupDir, backupToDelete);
                 fs.unlink(backupToDeletePath, (err: any) => {
-                  if (err) throw err;
+                  if (err) {
+                    if (cluster.isPrimary) log.error(`[Job System] - ${this.name} - Failed to delete backup: ${err}`);
+                    this.stop();
+                  }
                 });
               });
             }
@@ -93,11 +112,19 @@ const job = {
         })
         .catch((err: any) => {
           if (cluster.isPrimary) log.error(`[Job System] - ${this.name} - Failed to execute job: ${err}`);
+          this.stop();
         });
     },
     initialize() {
-      log.info(`[Job System] - ${this.name} - Initialized`);
-    }
+      if (!this.initialized) {
+        this.initialized = true; 
+        log.info(`[Job System] - ${this.name} - Initialized`);
+      }
+    },
+    stop() {
+      this.enabled = false;
+      log.info(`[Job System] - ${this.name} - Stopped`);
+    },
   },
   // Watch dog service. Scans for altered files and notifies EMAIL_ALERTS of any changes.
   watchDog: {
@@ -105,6 +132,7 @@ const job = {
     enabled: true,
     interval: 300000, // 5 minutes
     startImediately: true, // Run on startup
+    initialized: false,
     start() {
       const tempStorageCopy = [...tempStorage];
       const files = [] as string[];
@@ -127,10 +155,20 @@ const job = {
           )}`
         );
       }
-      this.initialize();
+      this.checkFiles();
     },
     initialize() {
-      log.info(`[Job System] - ${this.name} - Initialized`);
+      if (!this.initialized) {
+        this.initialized = true; 
+        log.info(`[Job System] - ${this.name} - Initialized`);
+      }
+      this.checkFiles();
+    },
+    stop() {
+      this.enabled = false;
+      log.info(`[Job System] - ${this.name} - Stopped`);
+    },
+    checkFiles () {
       tempStorage.length = 0;
       files.length = 0;
       getFiles(path.join(__dirname, "..", "..", "dist"))
@@ -147,9 +185,10 @@ const job = {
           });
         })
         .catch((err) => {
-          log.error(err);
+          if (cluster.isPrimary) log.error(`[Job System] - ${this.name} - Failed to execute job: ${err}`);
+          this.stop();
         });
-    },
+    }
   },
 } as any;
 
@@ -157,7 +196,9 @@ Object.keys(job).forEach((key: any) => {
   if (job[key].enabled) {
     setInterval(() => {
       try {
-        job[key].start();
+        if (job[key].initialized && job[key].enabled) {
+          job[key].start();
+        }
       } catch (err : any) {
         log.error(err);
       }
