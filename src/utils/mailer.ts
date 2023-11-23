@@ -5,7 +5,10 @@ dotenv.config();
 
 // Email setup
 const transporter = nodemailer.createTransport({
-  service: "Outlook365",
+  pool: true,
+  host: process.env.EMAIL_SERVICE,
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
