@@ -26,9 +26,7 @@ export function redirect(req: any, res: any, next: any): void {
   const rl = readline.createInterface({
     input: fs.createReadStream(redirects),
   });
-  const url = `${req.headers["x-forwarded-proto"] || req.protocol}://${
-    req.headers.host
-  }${req.url}`;
+  const url = `${req.headers["x-forwarded-proto"] || req.protocol}://${req.headers.host}${req.url}`;
   let found = false;
   rl.on("line", (line: string) => {
     if (line.startsWith("#")) return;
@@ -67,6 +65,10 @@ export function addRedirect(from: string, to: string): Promise<any> {
     if (!to.includes(".")) {
       if (!to.startsWith("localhost")) throw new Error("INVALID_REDIRECT");
     }
+
+    // Remove https:// or http:// from the URL
+    from = from.replace(/https?:\/\//, "");
+    to = to.replace(/https?:\/\//, "");
 
     try {
       new URL(`https://${from}`);
