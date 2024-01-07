@@ -173,7 +173,7 @@ myFirstJob: {
     }
 }
 ```
-Here, myFirstJob is the name of the job object that you want to create. You can replace it with a name of your choice. The name property is a string that describes the job. The enabled property is a boolean that specifies whether the job is enabled or disabled. The interval property is a number that represents the time interval at which the job will execute. The start() function is the code that will be executed when the job is started.
+Here, myFirstJob is the name of the job object that you want to create. You can replace it with a name of your choice. The name property is a string that describes the job. The enabled property is a boolean that specifies whether the job is enabled or disabled. The interval property is a number that represents the time interval at which the job will execute. The start() function is the code that will be executed when the job is started. The stop() function provides the ability to terminate a job at any time.
 
 ## Redirects
 Location: config/redirects.cfg
@@ -220,7 +220,9 @@ showLogin.cc
 
 ## Files
 Location: /files
+
 Secure Location: /files/secure
-You can choose to files to the directories above.
+
+You can choose to upload files to the directories above.
 Publicly accessible files can be accessed at files.yourdomain.com(DNS required) or yourdomain.com/files
 Secure files that are not accessible by any means and just live on the server as a storage device are located in the Secure Location directory.
